@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import heroImg from './assets/hero.png';
 
 export default function PagelabLanding() {
   const [paymentType, setPaymentType] = useState('contado');
@@ -176,8 +177,19 @@ export default function PagelabLanding() {
         /* Hero */
         .hero {
           padding: var(--space-20) 0 var(--space-16);
-          text-align: center;
           background: var(--color-white);
+          overflow: hidden;
+        }
+
+        .hero-layout {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: var(--space-12);
+          align-items: center;
+        }
+
+        .hero-content {
+          text-align: left;
         }
 
         .hero-badge {
@@ -194,7 +206,7 @@ export default function PagelabLanding() {
         }
 
         .hero-headline {
-          font-size: clamp(2.25rem, 5vw, 3.5rem);
+          font-size: clamp(2rem, 4.5vw, 3.25rem);
           font-weight: 600;
           line-height: 1.15;
           letter-spacing: -0.03em;
@@ -206,18 +218,39 @@ export default function PagelabLanding() {
           font-size: clamp(1rem, 2vw, 1.125rem);
           line-height: 1.7;
           color: var(--color-iron);
-          max-width: 620px;
-          margin: 0 auto var(--space-8);
+          margin-bottom: var(--space-8);
           font-weight: 400;
         }
 
         .hero-cta {
           display: flex;
           gap: var(--space-3);
-          justify-content: center;
           align-items: center;
           flex-wrap: wrap;
-          margin-bottom: var(--space-10);
+          margin-bottom: var(--space-8);
+        }
+
+        @keyframes heroSlideIn {
+          from { opacity: 0; transform: translateX(40px); }
+          to   { opacity: 1; transform: translateX(0); }
+        }
+
+        @keyframes heroFloat {
+          0%, 100% { transform: translateY(0); }
+          50%       { transform: translateY(-10px); }
+        }
+
+        .hero-image-wrapper {
+          animation: heroSlideIn 0.9s cubic-bezier(0.22, 1, 0.36, 1) 0.2s both;
+        }
+
+        .hero-image-wrapper img {
+          width: 100%;
+          height: auto;
+          border-radius: 16px;
+          box-shadow: 0 24px 64px rgba(0,0,0,0.12);
+          animation: heroFloat 5s ease-in-out 1.1s infinite;
+          display: block;
         }
 
         .btn {
@@ -810,6 +843,29 @@ export default function PagelabLanding() {
         }
 
         /* Responsive */
+        @media (max-width: 900px) {
+          .hero-layout {
+            grid-template-columns: 1fr;
+          }
+
+          .hero-content {
+            text-align: center;
+          }
+
+          .hero-cta {
+            justify-content: center;
+          }
+
+          .social-proof {
+            justify-content: center;
+          }
+
+          .hero-image-wrapper {
+            max-width: 520px;
+            margin: 0 auto;
+          }
+        }
+
         @media (max-width: 768px) {
           .hero {
             padding: var(--space-16) 0 var(--space-12);
@@ -847,17 +903,8 @@ export default function PagelabLanding() {
             display: none;
           }
 
-          .hero-mockups {
-            grid-template-columns: 1fr !important;
-          }
-
           .process-visual {
             display: none;
-          }
-
-          .portfolio-grid {
-            grid-template-columns: 1fr;
-            gap: var(--space-8);
           }
 
           .portfolio-card {
@@ -910,48 +957,6 @@ export default function PagelabLanding() {
           }
         }
 
-        /* Image Placeholders */
-        .hero-mockups {
-          display: grid;
-          grid-template-columns: repeat(3, 1fr);
-          gap: var(--space-4);
-          margin-top: var(--space-12);
-          max-width: 900px;
-          margin-left: auto;
-          margin-right: auto;
-        }
-
-        .mockup-card {
-          aspect-ratio: 3/4;
-          background: linear-gradient(135deg, #F5F5F5 0%, #FAFAFA 100%);
-          border-radius: 8px;
-          border: 1px solid #ECECEC;
-          position: relative;
-          overflow: hidden;
-        }
-
-        .mockup-card::before {
-          content: '';
-          position: absolute;
-          top: 0;
-          left: 0;
-          right: 0;
-          height: 40px;
-          background: var(--color-white);
-          border-bottom: 1px solid #ECECEC;
-        }
-
-        .mockup-card::after {
-          content: '';
-          position: absolute;
-          top: 60px;
-          left: var(--space-4);
-          right: var(--space-4);
-          bottom: var(--space-4);
-          background: var(--color-white);
-          border-radius: 4px;
-          opacity: 0.5;
-        }
 
         .process-visual {
           max-width: 500px;
@@ -1078,56 +1083,58 @@ export default function PagelabLanding() {
       {/* Hero */}
       <section className="hero">
         <div className="container">
-          <div className="hero-badge">
-            <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-              <path d="M7 1L8.545 5.13L13 5.545L9.5 8.635L10.545 13L7 10.635L3.455 13L4.5 8.635L1 5.545L5.455 5.13L7 1Z" fill="currentColor"/>
-            </svg>
-            Entrega en 48-72 horas · Sin costos ocultos
-          </div>
-          
-          <h1 className="hero-headline">
-            Tu página web profesional lista en 3 días
-          </h1>
-          
-          <p className="hero-subheadline">
-            Diseñamos y desarrollamos páginas web de calidad para tu negocio.
-            Proceso simple, entrega rápida, sin complicaciones.
-          </p>
-          
-          <div className="hero-cta">
-            <button className="btn btn-primary" onClick={() => scrollToSection('pricing')}>
-              Ver Planes →
-            </button>
-            <button className="btn btn-secondary" onClick={() => scrollToSection('proceso')}>
-              Cómo funciona
-            </button>
-          </div>
-          
-          <div className="social-proof">
-            <div className="proof-item">
-              <svg className="proof-check" viewBox="0 0 16 16" fill="none">
-                <path d="M13.3333 4L6 11.3333L2.66667 8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-              </svg>
-              +127 páginas entregadas
-            </div>
-            <div className="proof-item">
-              <svg className="proof-check" viewBox="0 0 16 16" fill="none">
-                <path d="M13.3333 4L6 11.3333L2.66667 8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-              </svg>
-              100% en tiempo
-            </div>
-            <div className="proof-item">
-              <svg className="proof-check" viewBox="0 0 16 16" fill="none">
-                <path d="M13.3333 4L6 11.3333L2.66667 8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-              </svg>
-              Sin contratos largos
-            </div>
-          </div>
+          <div className="hero-layout">
+            <div className="hero-content">
+              <div className="hero-badge">
+                <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                  <path d="M7 1L8.545 5.13L13 5.545L9.5 8.635L10.545 13L7 10.635L3.455 13L4.5 8.635L1 5.545L5.455 5.13L7 1Z" fill="currentColor"/>
+                </svg>
+                Entrega en 48-72 horas · Sin costos ocultos
+              </div>
 
-          <div className="hero-mockups">
-            <div className="mockup-card"></div>
-            <div className="mockup-card"></div>
-            <div className="mockup-card"></div>
+              <h1 className="hero-headline">
+                Tu página web profesional lista en 3 días
+              </h1>
+
+              <p className="hero-subheadline">
+                Diseñamos y desarrollamos páginas web de calidad para tu negocio.
+                Proceso simple, entrega rápida, sin complicaciones.
+              </p>
+
+              <div className="hero-cta">
+                <button className="btn btn-primary" onClick={() => scrollToSection('pricing')}>
+                  Ver Planes →
+                </button>
+                <button className="btn btn-secondary" onClick={() => scrollToSection('proceso')}>
+                  Cómo funciona
+                </button>
+              </div>
+
+              <div className="social-proof">
+                <div className="proof-item">
+                  <svg className="proof-check" viewBox="0 0 16 16" fill="none">
+                    <path d="M13.3333 4L6 11.3333L2.66667 8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                  +127 páginas entregadas
+                </div>
+                <div className="proof-item">
+                  <svg className="proof-check" viewBox="0 0 16 16" fill="none">
+                    <path d="M13.3333 4L6 11.3333L2.66667 8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                  100% en tiempo
+                </div>
+                <div className="proof-item">
+                  <svg className="proof-check" viewBox="0 0 16 16" fill="none">
+                    <path d="M13.3333 4L6 11.3333L2.66667 8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                  Sin contratos largos
+                </div>
+              </div>
+            </div>
+
+            <div className="hero-image-wrapper">
+              <img src={heroImg} alt="Ejemplos de páginas web creadas por Pagelab" />
+            </div>
           </div>
         </div>
       </section>
