@@ -185,10 +185,15 @@ export default function PagelabLanding() {
         .hero-sub { font-size: 1.0625rem; line-height: 1.75; color: var(--iron); margin-bottom: 1.75rem; }
         .hero-sub strong { color: var(--noir); font-weight: 600; }
         .hero-proof {
-          display: flex; align-items: center; gap: 0.75rem;
-          margin-bottom: 2rem; font-size: 0.875rem; color: var(--iron); flex-wrap: wrap;
+          display: flex; align-items: center; gap: 0.625rem;
+          margin-bottom: 2rem; flex-wrap: wrap;
         }
-        .hero-proof .sep { color: var(--cloud); }
+        .proof-badge {
+          display: inline-flex; align-items: center; gap: 0.375rem;
+          background: var(--bg-light); border: 1px solid #E8E8E8;
+          padding: 0.3rem 0.75rem; border-radius: 100px;
+          font-size: 0.8125rem; font-weight: 500; color: var(--noir);
+        }
         .hero-ctas { display: flex; gap: 0.75rem; align-items: center; flex-wrap: wrap; margin-bottom: 0.625rem; }
         .cta-note { font-size: 0.8125rem; color: var(--fog); margin-bottom: 1.25rem; }
         .hero-link { font-size: 0.875rem; color: var(--iron); text-decoration: underline; cursor: pointer; background: none; border: none; font-family: var(--font); }
@@ -251,7 +256,7 @@ export default function PagelabLanding() {
         .start-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1.5rem; max-width: 860px; margin: 0 auto; }
         .start-card { padding: 2rem; border: 2px solid #E8E8E8; border-radius: 10px; background: var(--white); transition: all 0.2s; }
         .start-card:hover { transform: translateY(-3px); box-shadow: 0 8px 24px rgba(0,0,0,0.07); }
-        .start-card.recommended { border-color: var(--noir); }
+        /* .start-card.recommended removed */
         .start-badge {
           display: inline-block; background: var(--noir); color: var(--white);
           padding: 3px 10px; border-radius: 100px; font-size: 0.6875rem;
@@ -329,8 +334,14 @@ export default function PagelabLanding() {
         .faq-answer-content { padding-bottom: 1.25rem; font-size: 0.9375rem; line-height: 1.7; color: var(--iron); }
 
         /* ── CTA Final ── */
-        .final-cta { text-align: center; }
-        .final-ctas { display: flex; gap: 0.75rem; justify-content: center; align-items: center; flex-wrap: wrap; margin-top: 2rem; }
+        .final-cta {}
+        .cta-final-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 4rem; align-items: center; }
+        .cta-final-image img { width: 100%; border-radius: 12px; opacity: 0.88; display: block; }
+        .cta-final-content {}
+        .cta-final-headline { font-size: clamp(1.75rem, 2.75vw, 2.5rem); font-weight: 700; line-height: 1.15; letter-spacing: -0.02em; color: var(--white); margin-bottom: 1rem; }
+        .cta-final-sub { font-size: 1rem; line-height: 1.75; color: var(--silver); margin-bottom: 1.75rem; }
+        .final-ctas { display: flex; gap: 0.75rem; align-items: center; flex-wrap: wrap; }
+        .cta-fine-print { font-size: 0.8125rem; color: rgba(255,255,255,0.4); margin-top: 1.25rem; }
 
         /* ── Form section ── */
         .form-section { background: var(--bg-light); }
@@ -408,6 +419,8 @@ export default function PagelabLanding() {
           .cases-grid { grid-template-columns: 1fr; max-width: 440px; }
           .pricing-cards { grid-template-columns: 1fr; max-width: 420px; }
           .footer-inner { grid-template-columns: 1fr; gap: 2rem; }
+          .cta-final-layout { grid-template-columns: 1fr; gap: 2.5rem; }
+          .cta-final-image { display: none; }
         }
         @media (max-width: 768px) {
           .hero { padding: 3.5rem 0 2.5rem; }
@@ -443,17 +456,24 @@ export default function PagelabLanding() {
               <h1 className="hero-headline">Tu página web profesional lista en 3 días</h1>
 
               <p className="hero-sub">
-                Envías tu contenido hoy <strong>({todayDay})</strong>. Recibes tu sitio
+                Envías tu contenido hoy <strong>{todayDay}</strong>. Recibes tu sitio
                 funcionando el <strong>{deliveryDay}</strong>.<br />
                 Sin complicaciones, sin reuniones interminables, sin esperas.
               </p>
 
               <div className="hero-proof">
-                <span>✓ 47 sitios entregados</span>
-                <span className="sep">|</span>
-                <span>✓ 4.9/5 rating</span>
-                <span className="sep">|</span>
-                <span>✓ 2.8 días promedio</span>
+                <span className="proof-badge">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+                  4.9/5 rating
+                </span>
+                <span className="proof-badge">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><path d="M22 4L12 14.01l-3-3"/></svg>
+                  47 sitios entregados
+                </span>
+                <span className="proof-badge">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+                  2.8 días promedio
+                </span>
               </div>
 
               <div className="hero-ctas">
@@ -539,8 +559,7 @@ export default function PagelabLanding() {
             <p className="section-sub">Puedes comenzar de 2 formas. Elige la que te haga más sentido:</p>
           </div>
           <div className="start-grid">
-            <div className="start-card recommended">
-              <div className="start-badge">Más común</div>
+            <div className="start-card">
               <div className="start-title">Cuéntanos qué necesitas</div>
               <p className="start-desc">Completas un formulario rápido con la info de tu negocio. Te respondemos en menos de 2 horas con tu plan personalizado y link de pago.</p>
               <ul className="start-benefits">
@@ -575,9 +594,9 @@ export default function PagelabLanding() {
           </div>
           <div className="cases-grid">
             {[
-              { Icon: IconRocket, title: '¿Validando una idea?', desc: 'Tu landing page lista en 3 días por $200k. Lanza rápido, valida con usuarios reales, itera después.' },
-              { Icon: IconBuilding, title: '¿Negocio sin web?', desc: 'Sitio corporativo completo por $400k. Muestra tus servicios, genera confianza, recibe consultas. Sin depender de Instagram o Facebook.' },
-              { Icon: IconBriefcase, title: '¿Portfolio profesional?', desc: 'Tu portafolio online en 3 días por $200k. Destaca tu trabajo, cierra más clientes, deja de mandar PDFs.' },
+              { Icon: IconRocket, title: '¿Validando una idea?', desc: 'Tu landing page lista en 3 días por $200.000. Lanza rápido, valida con usuarios reales, itera después.' },
+              { Icon: IconBuilding, title: '¿Negocio sin web?', desc: 'Sitio corporativo completo por $400.000. Muestra tus servicios, genera confianza, recibe consultas. Sin depender de Instagram o Facebook.' },
+              { Icon: IconBriefcase, title: '¿Portfolio profesional?', desc: 'Tu portafolio online en 3 días por $200.000. Destaca tu trabajo, cierra más clientes, deja de mandar PDFs.' },
             ].map(({ Icon, title, desc }, i) => (
               <div key={i} className="case-card">
                 <div className="icon-block"><Icon /></div>
@@ -740,17 +759,23 @@ export default function PagelabLanding() {
       {/* ── 11. CTA Final ── */}
       <section className="section section-dark final-cta" data-animate>
         <div className="container">
-          <div className="section-header">
-            <h2 className="section-headline">¿Listo para tener tu sitio web?</h2>
-            <p className="section-sub">Elige cómo quieres empezar:</p>
-          </div>
-          <div className="final-ctas">
-            <button className="btn btn-primary" style={{ background: 'var(--white)', color: 'var(--noir)' }} onClick={() => scrollToSection('contacto')}>
-              Comienza Ahora
-            </button>
-            <button className="btn btn-secondary" style={{ borderColor: 'rgba(255,255,255,0.3)', color: 'var(--white)' }} onClick={() => scrollToSection('pricing')}>
-              Ver Planes
-            </button>
+          <div className="cta-final-layout">
+            <div className="cta-final-image">
+              <img src={heroImg} alt="Páginas web profesionales listas en 3 días — Pagelab" />
+            </div>
+            <div className="cta-final-content">
+              <h2 className="cta-final-headline">Tu web lista antes de que termine la semana</h2>
+              <p className="cta-final-sub">Más de 47 negocios ya dejaron de depender de Instagram para conseguir clientes. Landing page desde $200.000, sitio web desde $400.000. Entrega en 3 días, hosting incluido para siempre.</p>
+              <div className="final-ctas">
+                <button className="btn" style={{ background: 'var(--white)', color: 'var(--noir)', fontWeight: 600 }} onClick={() => scrollToSection('contacto')}>
+                  Contáctanos hoy
+                </button>
+                <button className="btn" style={{ background: 'transparent', color: 'var(--white)', border: '2px solid rgba(255,255,255,0.25)' }} onClick={() => scrollToSection('pricing')}>
+                  Ver precios
+                </button>
+              </div>
+              <p className="cta-fine-print">Respondemos en menos de 2 horas · Sin compromiso</p>
+            </div>
           </div>
         </div>
       </section>
@@ -761,8 +786,8 @@ export default function PagelabLanding() {
           <div className="form-layout">
             {/* Copy izquierdo */}
             <div className="form-copy">
-              <h2 className="form-copy-headline">Recibe tu propuesta personalizada en 2 horas</h2>
-              <p className="form-copy-sub">Sin compromiso. Sin costo. Solo cuéntanos qué necesitas y te decimos exactamente cómo ayudarte.</p>
+              <h2 className="form-copy-headline">Escríbenos y empezamos hoy</h2>
+              <p className="form-copy-sub">Cuéntanos qué necesitas. Te respondemos en menos de 2 horas con toda la información para comenzar.</p>
               <ul className="form-copy-bullets">
                 {[
                   'Te decimos exactamente qué plan necesitas',
@@ -813,8 +838,8 @@ export default function PagelabLanding() {
                   <div className="form-group">
                     <label>¿Qué necesitas? *</label>
                     <div className="radio-group">
-                      <label><input type="radio" name="plan" value="Landing Page ($200.000)" required /> Landing Page ($200.000)</label>
-                      <label><input type="radio" name="plan" value="Sitio Web ($400.000)" /> Sitio Web ($400.000)</label>
+                      <label><input type="radio" name="plan" value="Landing Page" required /> Landing Page</label>
+                      <label><input type="radio" name="plan" value="Sitio Web" /> Sitio Web</label>
                       <label><input type="radio" name="plan" value="No estoy seguro" /> No estoy seguro</label>
                     </div>
                   </div>
@@ -853,7 +878,6 @@ export default function PagelabLanding() {
                 Diseño y desarrollo de páginas web profesionales en Chile. Landing pages, sitios corporativos y portafolios online. Entrega garantizada en 3 días hábiles.
               </p>
               <div className="footer-contact">
-                <div itemProp="email"><a href={`mailto:${FORM_EMAIL}`}>{FORM_EMAIL}</a></div>
                 <div>Santiago, Chile</div>
               </div>
             </div>
