@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import heroImg from './assets/hero.png';
+import heroImg from './assets/hero.jpg';
 
 export default function PagelabLanding() {
   const [paymentType, setPaymentType] = useState('contado');
