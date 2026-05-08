@@ -92,25 +92,25 @@ export default function PagelabLanding() {
     { q: '¿Puedo pagar directo o necesito consultar primero?', a: 'Puedes elegir. Si ya sabes qué necesitas, pagas directamente y empezamos hoy. Si tienes dudas, completa el formulario y te respondemos en menos de 2 horas.' },
     { q: '¿Qué pasa después de llenar el formulario?', a: 'Te respondemos por email en menos de 2 horas con un plan personalizado y link de pago. Una vez pagas, te enviamos un formulario de brief donde nos cuentas sobre tu negocio y envías fotos/logos.' },
     { q: '¿Puedo ver el sitio antes de que quede público?', a: 'Sí. Te enviamos un preview para que lo revises. Tienes rondas de cambios incluidas. Solo publicamos cuando estés 100% conforme.' },
-    { q: '¿Puedo ver ejemplos antes de decidir?', a: 'Sí, revisa la sección "Nuestros Trabajos" con sitios reales que hemos creado.' },
+    { q: '¿Puedo ver ejemplos antes de decidir?', a: 'Sí, revisa la sección "Trabajos más recientes" con sitios reales que hemos creado.' },
     { q: '¿Qué pasa si no me gusta el resultado?', a: 'Revisas el preview antes de publicar y pedís los cambios incluidos. Solo publicamos cuando estés conforme.' },
     { q: '¿Necesito conocimientos técnicos?', a: 'Para nada. Solo necesitas tus textos, imágenes y logo. Nosotros nos encargamos del diseño, programación, publicación y seguridad.' },
     { q: '¿Tengo que pagar hosting o dominio aparte?', a: 'El hosting está incluido sin costo mensual. El dominio lo puedes traer si ya tienes uno, o te ayudamos a comprarlo (aprox $15-20k/año). Sin costos ocultos.' },
   ];
 
   const portfolioItems = [
-    { img: imgKivo, cat: 'Marketing Digital', title: 'KIVO', desc: 'Plataforma de gestión de Google Ads con IA. Landing enfocada en conversión.' },
-    { img: imgFloresta, cat: 'Eventos & Turismo', title: 'Floresta La Ermita', desc: 'Centro de eventos en la cordillera. Diseño elegante con galería y cotización.' },
-    { img: imgAcerca, cat: 'Consultoría', title: 'Acerca Consultores', desc: 'Cotización online para consultoría empresarial. Formularios inteligentes.' },
+    { img: imgKivo, objPos: 'top', cat: 'Marketing Digital', title: 'KIVO', desc: 'Plataforma de gestión de Google Ads con IA. Landing enfocada en conversión.' },
+    { img: imgFloresta, objPos: 'top', cat: 'Eventos & Turismo', title: 'Floresta La Ermita', desc: 'Centro de eventos en la cordillera. Diseño elegante con galería y cotización.' },
+    { img: imgAcerca, objPos: 'center', cat: 'Consultoría', title: 'Acerca Consultores', desc: 'Cotización online para consultoría empresarial. Formularios inteligentes.' },
     { bg: 'linear-gradient(135deg, #d32f2f, #f57c00)', label: 'CONTIGO PAN\nY CEBOLLA', cat: 'Gastronomía', title: 'Contigo Pan y Cebolla', desc: 'Emprendimiento gastronómico. Menú digital y reservas online.' },
-    { img: imgConecta, cat: 'Negocios', title: 'Conecta Franquicias', desc: 'Marketplace de franquicias. Buscador avanzado y sistema de matching.' },
+    { img: imgConecta, objPos: 'center', cat: 'Negocios', title: 'Conecta Franquicias', desc: 'Marketplace de franquicias. Buscador avanzado y sistema de matching.' },
   ];
 
   const testimonials = [
-    { quote: '"Después de gastar $1.5M en una agencia que nunca entregó, Pagelab me hizo la página en 4 días. Funciona, se ve bien, y no tuve que perseguir a nadie."', init: 'MU', name: 'Martín Ulloa', role: 'Fundador de Tekio' },
-    { quote: '"Llevaba 3 semanas peleando con Wix. Les pagué un viernes, el martes ya estaba publicado. La única vez que algo salió como prometieron."', init: 'VR', name: 'Valentina Rojas', role: 'Arquitecta' },
-    { quote: '"Necesitaba una página para una campaña urgente. Todos me dijeron imposible. Pagelab lo hizo en 4 días. Salvaron mi lanzamiento."', init: 'DC', name: 'Diego Campos', role: 'Startup Fintech' },
-    { quote: '"Proceso súper simple. Llené el formulario, me respondieron en 1 hora, y 3 días después tenía mi sitio listo. Exactamente lo que prometieron."', init: 'AP', name: 'Andrea Pérez', role: 'Consultora freelance' },
+    { quote: '"Después de gastar $1.5M en una agencia que nunca entregó, Pagelab me hizo la página en 4 días. Funciona, se ve bien, y no tuve que perseguir a nadie."', init: 'NC', name: 'Nicolás Chocaír', role: 'Acerca Consultores' },
+    { quote: '"Llevaba 3 semanas peleando con Wix. Les pagué un viernes, el martes ya estaba publicado. La única vez que algo salió como prometieron."', init: 'NR', name: 'Nicolás Rodríguez', role: 'Contigo Pan y Cebolla' },
+    { quote: '"Necesitaba una página para una campaña urgente. Todos me dijeron imposible. Pagelab lo hizo en 4 días. Salvaron mi lanzamiento."', init: 'BC', name: 'Bruno Calderón', role: 'KIVO' },
+    { quote: '"Proceso súper simple. Llené el formulario, me respondieron en 1 hora, y 3 días después tenía mi sitio listo. Exactamente lo que prometieron."', init: 'SO', name: 'Sebastián Ortíz', role: 'Conecta Franquicias' },
     { quote: '"Sin jerga técnica, sin reuniones. Me explicaron todo en simple y entregaron exactamente lo que necesitaba a tiempo."', init: 'RS', name: 'Rodrigo Silva', role: 'Chef & Emprendedor' },
   ];
 
@@ -621,7 +621,7 @@ export default function PagelabLanding() {
         <div className="container">
           <div className="section-header">
             <div className="section-eyebrow">Portafolio</div>
-            <h2 className="section-headline">Nuestros Trabajos</h2>
+            <h2 className="section-headline">Trabajos más recientes</h2>
             <p className="section-sub">Páginas reales que generan resultados reales para negocios como el tuyo</p>
           </div>
         </div>
@@ -631,7 +631,7 @@ export default function PagelabLanding() {
               <div key={i} className="portfolio-card">
                 <div className="portfolio-screenshot">
                   {p.img
-                    ? <img src={p.img} alt={p.title} style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'top' }} />
+                    ? <img src={p.img} alt={p.title} style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: p.objPos || 'top' }} />
                     : <div style={{ width: '100%', height: '100%', background: p.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontWeight: 700, fontSize: '1.375rem', textAlign: 'center', padding: '2rem', whiteSpace: 'pre-line' }}>{p.label}</div>
                   }
                 </div>
