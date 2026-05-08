@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import heroImg from './assets/hero.jpg';
 import imgKivo from './assets/Kivo.webp';
 import imgFloresta from './assets/Floresta la ermita.webp';
@@ -57,6 +58,7 @@ const IconBriefcase = () => (
 );
 
 export default function PagelabLanding() {
+  const navigate = useNavigate();
   const [openFaq, setOpenFaq] = useState(null);
   const [formSubmitted, setFormSubmitted] = useState(false);
   const { todayDay, deliveryDay } = getDeliveryDays();
@@ -446,7 +448,7 @@ export default function PagelabLanding() {
               <a onClick={() => scrollToSection('proceso')}>Proceso</a>
               <a onClick={() => scrollToSection('pricing')}>Precios</a>
               <a onClick={() => scrollToSection('faq')}>FAQ</a>
-              <a className="nav-cta" onClick={() => scrollToSection('contacto')}>Comenzar</a>
+              <a className="nav-cta" onClick={() => navigate('/brief')}>Comenzar</a>
             </nav>
           </div>
         </div>
@@ -481,7 +483,7 @@ export default function PagelabLanding() {
               </div>
 
               <div className="hero-ctas">
-                <button className="btn btn-primary" onClick={() => scrollToSection('contacto')}>Comienza Ahora</button>
+                <button className="btn btn-primary" onClick={() => navigate('/brief')}>Comienza Ahora</button>
                 <button className="btn btn-secondary" onClick={() => scrollToSection('pricing')}>Ver Planes</button>
               </div>
               <div className="cta-note">Te respondemos en menos de 2 horas</div>
@@ -571,7 +573,7 @@ export default function PagelabLanding() {
                 <li>✓ Te ayudamos a elegir el plan correcto</li>
                 <li>✓ Confirmamos que tenemos todo lo necesario</li>
               </ul>
-              <button className="btn btn-primary" onClick={() => scrollToSection('contacto')}>Comienza Ahora</button>
+              <button className="btn btn-primary" onClick={() => navigate('/brief')}>Comienza Ahora</button>
               <div className="start-timing">Respuesta en menos de 2 horas</div>
             </div>
             <div className="start-card">
@@ -607,7 +609,7 @@ export default function PagelabLanding() {
                 <div className="case-title">{title}</div>
                 <p className="case-desc">{desc}</p>
                 <div className="case-ctas">
-                  <button className="btn btn-primary" onClick={() => scrollToSection('contacto')}>Comienza Ahora</button>
+                  <button className="btn btn-primary" onClick={() => navigate('/brief')}>Comienza Ahora</button>
                   <button className="btn btn-secondary" onClick={() => scrollToSection('pricing')}>Ver Planes</button>
                 </div>
               </div>
@@ -677,7 +679,7 @@ export default function PagelabLanding() {
                 <li>Entrega en 3 días</li>
               </ul>
               <div className="plan-ctas">
-                <button className="btn btn-primary" onClick={() => scrollToSection('contacto')}>Comienza Ahora</button>
+                <button className="btn btn-primary" onClick={() => navigate('/brief?plan=landing')}>Comienza Ahora</button>
                 <button className="btn btn-secondary" onClick={() => scrollToSection('contacto')}>Consultar primero</button>
                 <button className="plan-link" onClick={() => scrollToSection('contacto')}>Tengo preguntas →</button>
               </div>
@@ -703,7 +705,7 @@ export default function PagelabLanding() {
                 <li>Entrega en 5 días</li>
               </ul>
               <div className="plan-ctas">
-                <button className="btn btn-primary" onClick={() => scrollToSection('contacto')}>Comienza Ahora</button>
+                <button className="btn btn-primary" onClick={() => navigate('/brief?plan=sitio')}>Comienza Ahora</button>
                 <button className="btn btn-secondary" onClick={() => scrollToSection('contacto')}>Consultar primero</button>
                 <button className="plan-link" onClick={() => scrollToSection('contacto')}>Tengo preguntas →</button>
               </div>
@@ -772,8 +774,8 @@ export default function PagelabLanding() {
               <h2 className="cta-final-headline">Tu web lista antes de que termine la semana</h2>
               <p className="cta-final-sub">Más de 47 negocios ya dejaron de depender de Instagram para conseguir clientes. Landing page desde $200.000, sitio web desde $400.000. Entrega en 3 días, hosting incluido para siempre.</p>
               <div className="final-ctas">
-                <button className="btn" style={{ background: 'var(--white)', color: 'var(--noir)', fontWeight: 600 }} onClick={() => scrollToSection('contacto')}>
-                  Contáctanos hoy
+                <button className="btn" style={{ background: 'var(--white)', color: 'var(--noir)', fontWeight: 600 }} onClick={() => navigate('/brief')}>
+                  Comienza Ahora
                 </button>
                 <button className="btn" style={{ background: 'transparent', color: 'var(--white)', border: '2px solid rgba(255,255,255,0.25)' }} onClick={() => scrollToSection('pricing')}>
                   Ver precios
