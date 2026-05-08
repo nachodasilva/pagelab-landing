@@ -1,5 +1,9 @@
 import { useState, useEffect } from 'react';
 import heroImg from './assets/hero.jpg';
+import imgKivo from './assets/Kivo.webp';
+import imgFloresta from './assets/Floresta la ermita.webp';
+import imgAcerca from './assets/Acerca Consultores.webp';
+import imgConecta from './assets/Conecta Franquicias.webp';
 
 const FORM_EMAIL = 'silvapignacio@gmail.com';
 
@@ -95,11 +99,11 @@ export default function PagelabLanding() {
   ];
 
   const portfolioItems = [
-    { bg: 'linear-gradient(135deg, #0273ef, #0056b3)', label: 'KIVO', cat: 'Marketing Digital', title: 'KIVO', desc: 'Plataforma de gestión de Google Ads con IA. Landing enfocada en conversión.' },
-    { bg: 'linear-gradient(180deg, #2d5016, #4a7c2a)', label: 'FLORESTA\nLA ERMITA', cat: 'Eventos & Turismo', title: 'Floresta La Ermita', desc: 'Centro de eventos en la cordillera. Diseño elegante con galería y cotización.' },
-    { bg: 'linear-gradient(135deg, #1a237e, #3949ab)', label: 'ACERCA\nCONSULTORES', cat: 'Consultoría', title: 'Acerca Consultores', desc: 'Cotización online para consultoría empresarial. Formularios inteligentes.' },
+    { img: imgKivo, cat: 'Marketing Digital', title: 'KIVO', desc: 'Plataforma de gestión de Google Ads con IA. Landing enfocada en conversión.' },
+    { img: imgFloresta, cat: 'Eventos & Turismo', title: 'Floresta La Ermita', desc: 'Centro de eventos en la cordillera. Diseño elegante con galería y cotización.' },
+    { img: imgAcerca, cat: 'Consultoría', title: 'Acerca Consultores', desc: 'Cotización online para consultoría empresarial. Formularios inteligentes.' },
     { bg: 'linear-gradient(135deg, #d32f2f, #f57c00)', label: 'CONTIGO PAN\nY CEBOLLA', cat: 'Gastronomía', title: 'Contigo Pan y Cebolla', desc: 'Emprendimiento gastronómico. Menú digital y reservas online.' },
-    { bg: 'linear-gradient(135deg, #00695c, #00897b)', label: 'CONECTA\nFRANQUICIAS', cat: 'Negocios', title: 'Conecta Franquicias', desc: 'Marketplace de franquicias. Buscador avanzado y sistema de matching.' },
+    { img: imgConecta, cat: 'Negocios', title: 'Conecta Franquicias', desc: 'Marketplace de franquicias. Buscador avanzado y sistema de matching.' },
   ];
 
   const testimonials = [
@@ -626,9 +630,10 @@ export default function PagelabLanding() {
             {[...portfolioItems, ...portfolioItems].map((p, i) => (
               <div key={i} className="portfolio-card">
                 <div className="portfolio-screenshot">
-                  <div style={{ width: '100%', height: '100%', background: p.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontWeight: 700, fontSize: '1.375rem', textAlign: 'center', padding: '2rem', whiteSpace: 'pre-line' }}>
-                    {p.label}
-                  </div>
+                  {p.img
+                    ? <img src={p.img} alt={p.title} style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'top' }} />
+                    : <div style={{ width: '100%', height: '100%', background: p.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontWeight: 700, fontSize: '1.375rem', textAlign: 'center', padding: '2rem', whiteSpace: 'pre-line' }}>{p.label}</div>
+                  }
                 </div>
                 <div className="portfolio-card-content">
                   <div className="project-category">{p.cat}</div>
