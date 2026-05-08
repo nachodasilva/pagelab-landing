@@ -1,10 +1,8 @@
 import { useEffect } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 
 // ─── IDs de tracking — reemplaza con los tuyos ───────────────────────────────
-const GA_MEASUREMENT_ID  = 'G-XXXXXXXXXX';   // Google Analytics 4
-const GA_ADS_CONVERSION  = null;              // Google Ads: 'AW-XXXXXXXXX/YYYYYYY' (o null si no tienes)
-const META_PIXEL_ID      = 'XXXXXXXXXXXXXXXXX'; // Meta Pixel
+const GA_ADS_CONVERSION = null; // Google Ads: 'AW-XXXXXXXXX/YYYYYYY' (o null si no tienes)
 // ─────────────────────────────────────────────────────────────────────────────
 
 const PLANES = {
@@ -14,10 +12,12 @@ const PLANES = {
 
 export default function Gracias() {
   const navigate = useNavigate();
-  const location = useLocation();
-  const params   = new URLSearchParams(location.search);
-  const planKey  = params.get('plan') || 'landing';
-  const plan     = PLANES[planKey] ?? PLANES.landing;
+
+  // Leemos el plan desde sessionStorage (guardado en Brief antes del pago)
+  // y lo limpiamos para que no persista en visitas futuras
+  const planKey = sessionStorage.getItem('pl_plan') || 'landing';
+  sessionStorage.removeItem('pl_plan');
+  const plan = PLANES[planKey] ?? PLANES.landing;
 
   useEffect(() => {
     window.scrollTo(0, 0);

@@ -72,7 +72,8 @@ export default function Brief() {
 
   const handleSubmit = (e) => {
     if (!validate()) { e.preventDefault(); return; }
-    // El formulario se envía nativamente a formsubmit.co y redirige a PAYMENT_URL
+    // Guardamos el plan para que la página de gracias sepa qué monto trackear
+    sessionStorage.setItem('pl_plan', plan === 'Sitio Web' ? 'sitio' : 'landing');
   };
 
   const setColor = (i, val) => {
