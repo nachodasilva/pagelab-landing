@@ -3,8 +3,8 @@ import { useNavigate, useLocation } from 'react-router-dom';
 
 const FORM_EMAIL = 'silvapignacio@gmail.com';
 // Reemplaza con tu link de pago cuando lo tengas configurado
-const PAYMENT_URL_LANDING = 'https://pagelab.cl/#/brief';
-const PAYMENT_URL_SITIO   = 'https://pagelab.cl/#/brief';
+const PAYMENT_URL_LANDING = 'https://mpago.li/2YjR7CK';
+const PAYMENT_URL_SITIO   = 'https://mpago.li/2gB57xw';
 
 const RUBROS = [
   'Gastronomía / Restaurant',
