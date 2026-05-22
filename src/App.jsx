@@ -205,6 +205,19 @@ export default function PagelabLanding() {
         .hero-link { font-size: 0.875rem; color: var(--iron); text-decoration: underline; cursor: pointer; background: none; border: none; font-family: var(--font); }
         .hero-link:hover { color: var(--noir); }
 
+        /* ── Rating Badge ── */
+        .hero-rating-badge {
+          display: inline-flex; align-items: center; gap: 0.5rem;
+          background: var(--white); border: 1.5px solid #E8E8E8;
+          border-radius: 100px; padding: 0.45rem 1rem 0.45rem 0.75rem;
+          margin-bottom: 1.5rem; box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+        }
+        .rating-stars { color: #F5A623; font-size: 0.9rem; letter-spacing: -1px; line-height: 1; }
+        .rating-score { font-size: 0.875rem; font-weight: 700; color: var(--noir); }
+        .rating-score span { font-weight: 400; color: var(--fog); }
+        .rating-sep { width: 1px; height: 14px; background: #E0E0E0; flex-shrink: 0; }
+        .rating-clients { font-size: 0.8125rem; color: var(--iron); font-weight: 500; }
+
         @keyframes heroSlideIn { from { opacity: 0; transform: translateX(40px); } to { opacity: 1; transform: translateX(0); } }
         @keyframes heroFloat { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
         .hero-image-wrapper { animation: heroSlideIn 0.9s cubic-bezier(0.22, 1, 0.36, 1) 0.2s both; }
@@ -467,11 +480,14 @@ export default function PagelabLanding() {
                 Sin complicaciones, sin reuniones interminables, sin esperas.
               </p>
 
+              <div className="hero-rating-badge">
+                <span className="rating-stars">★★★★★</span>
+                <span className="rating-score">4.9 <span>/ 5.0</span></span>
+                <span className="rating-sep" />
+                <span className="rating-clients">+40 clientes satisfechos</span>
+              </div>
+
               <div className="hero-proof">
-                <span className="proof-badge">
-                  <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
-                  4.9/5 rating
-                </span>
                 <span className="proof-badge">
                   <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><path d="M22 4L12 14.01l-3-3"/></svg>
                   47 sitios entregados
