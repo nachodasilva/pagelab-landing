@@ -210,7 +210,7 @@ export default function PagelabLanding() {
           display: inline-flex; align-items: center; gap: 0.5rem;
           background: var(--white); border: 1.5px solid #E8E8E8;
           border-radius: 100px; padding: 0.45rem 1rem 0.45rem 0.75rem;
-          margin-bottom: 1.5rem; box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+          margin-bottom: 1rem; box-shadow: 0 1px 4px rgba(0,0,0,0.06);
         }
         .rating-stars { color: #F5A623; font-size: 0.9rem; letter-spacing: -1px; line-height: 1; }
         .rating-score { font-size: 0.875rem; font-weight: 700; color: var(--noir); }
@@ -472,6 +472,13 @@ export default function PagelabLanding() {
         <div className="container">
           <div className="hero-layout">
             <div className="hero-content">
+              <div className="hero-rating-badge">
+                <span className="rating-stars">★★★★★</span>
+                <span className="rating-score">4.9 <span>/ 5.0</span></span>
+                <span className="rating-sep" />
+                <span className="rating-clients">+40 clientes satisfechos</span>
+              </div>
+
               <h1 className="hero-headline">Tu página web profesional lista en 3 días</h1>
 
               <p className="hero-sub">
@@ -479,13 +486,6 @@ export default function PagelabLanding() {
                 funcionando el <strong>{deliveryDay}</strong>.<br />
                 Sin complicaciones, sin reuniones interminables, sin esperas.
               </p>
-
-              <div className="hero-rating-badge">
-                <span className="rating-stars">★★★★★</span>
-                <span className="rating-score">4.9 <span>/ 5.0</span></span>
-                <span className="rating-sep" />
-                <span className="rating-clients">+40 clientes satisfechos</span>
-              </div>
 
               <div className="hero-proof">
                 <span className="proof-badge">
