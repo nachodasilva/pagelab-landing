@@ -1,6 +1,7 @@
 {
   "name": "pagelab-landing",
   "version": "1.0.0",
+  "type": "module",
   "description": "Landing page de Pagelab - Páginas web profesionales en 3 días",
   "scripts": {
     "dev": "vite",
@@ -8,12 +9,17 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "lucide-react": "^1.16.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-router-dom": "^7.15.0"
   },
   "devDependencies": {
+    "@tailwindcss/vite": "^4.3.0",
     "@vitejs/plugin-react": "^4.2.1",
+    "autoprefixer": "^10.5.0",
+    "postcss": "^8.5.15",
+    "tailwindcss": "^4.3.0",
     "vite": "^5.0.8"
   }
 }
