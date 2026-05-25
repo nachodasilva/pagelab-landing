@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import heroImg from './assets/hero.jpg';
 import imgKivo from './assets/Kivo.webp';
@@ -62,6 +62,9 @@ export default function PagelabLanding() {
   const [openFaq, setOpenFaq] = useState(null);
   const [formSubmitted, setFormSubmitted] = useState(false);
   const { todayDay, deliveryDay } = getDeliveryDays();
+  const [counters, setCounters] = useState({ sites: 0, days: 0, rating: 0, active: 0 });
+  const trustBarRef = useRef(null);
+  const countersStarted = useRef(false);
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -70,6 +73,32 @@ export default function PagelabLanding() {
     );
     document.querySelectorAll('[data-animate]').forEach(el => observer.observe(el));
     return () => observer.disconnect();
+  }, []);
+
+  useEffect(() => {
+    const el = trustBarRef.current;
+    if (!el) return;
+    const obs = new IntersectionObserver(([e]) => {
+      if (e.isIntersecting && !countersStarted.current) {
+        countersStarted.current = true;
+        const duration = 1800;
+        const steps = 72;
+        let step = 0;
+        const timer = setInterval(() => {
+          step++;
+          const ease = 1 - Math.pow(1 - Math.min(step / steps, 1), 3);
+          setCounters({
+            sites: Math.round(ease * 47),
+            days: Math.round(ease * 28) / 10,
+            rating: Math.round(ease * 49) / 10,
+            active: Math.round(ease * 100),
+          });
+          if (step >= steps) clearInterval(timer);
+        }, duration / steps);
+      }
+    }, { threshold: 0.4 });
+    obs.observe(el);
+    return () => obs.disconnect();
   }, []);
 
   const scrollToSection = (id) => {
@@ -180,7 +209,7 @@ export default function PagelabLanding() {
         .btn-secondary:hover { border-color: var(--noir); background: var(--bg-light); }
 
         /* ── Hero ── */
-        .hero { padding: 5rem 0 4rem; background: var(--white); overflow: hidden; }
+        .hero { padding: 5rem 0 4rem; background: linear-gradient(160deg, #F5F5F7 0%, #FFFFFF 55%, #F3F3F8 100%); overflow: hidden; }
         .hero-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 4rem; align-items: center; }
         .hero-content { text-align: left; }
         .hero-headline {
@@ -219,19 +248,209 @@ export default function PagelabLanding() {
         .rating-clients { font-size: 0.8125rem; color: var(--iron); font-weight: 500; }
 
         @keyframes heroSlideIn { from { opacity: 0; transform: translateX(40px); } to { opacity: 1; transform: translateX(0); } }
-        @keyframes heroFloat { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
-        .hero-image-wrapper { animation: heroSlideIn 0.9s cubic-bezier(0.22, 1, 0.36, 1) 0.2s both; }
-        .hero-image-wrapper img {
-          width: 100%; height: auto; border-radius: 16px;
-          box-shadow: 0 24px 64px rgba(0,0,0,0.12);
-          animation: heroFloat 5s ease-in-out 1.1s infinite; display: block;
+        @keyframes macbookFloat {
+          0%, 100% { transform: perspective(1200px) rotateX(4deg) rotateY(-6deg) translateY(0); }
+          50% { transform: perspective(1200px) rotateX(4deg) rotateY(-6deg) translateY(-8px); }
+        }
+        @keyframes iphoneFloat {
+          0%, 100% { transform: rotate(3deg) translateY(0); }
+          50% { transform: rotate(3deg) translateY(-7px); }
+        }
+        @keyframes cardFloat1 {
+          0%, 100% { transform: translateY(0); }
+          50% { transform: translateY(-6px); }
+        }
+        @keyframes cardFloat2 {
+          0%, 100% { transform: translateY(0); }
+          50% { transform: translateY(-5px); }
+        }
+
+        /* ── Hero Visual ── */
+        .hero-visual {
+          position: relative;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          min-height: 460px;
+          animation: heroSlideIn 0.9s cubic-bezier(0.22, 1, 0.36, 1) 0.2s both;
+        }
+        .hero-visual-bg {
+          position: absolute;
+          inset: -20px;
+          background:
+            radial-gradient(ellipse at 65% 35%, rgba(74,144,226,0.07) 0%, transparent 60%),
+            radial-gradient(ellipse at 10% 85%, rgba(120,80,200,0.04) 0%, transparent 55%);
+          pointer-events: none;
+        }
+
+        /* MacBook */
+        .macbook-wrap {
+          position: relative;
+          z-index: 2;
+          transform: perspective(1200px) rotateX(4deg) rotateY(-6deg);
+          filter: drop-shadow(0 28px 52px rgba(0,0,0,0.14));
+          animation: macbookFloat 6s ease-in-out 0.3s infinite;
+        }
+        .macbook-body {
+          width: 320px;
+          background: linear-gradient(180deg, #2A2A2C 0%, #1C1C1E 100%);
+          border-radius: 10px 10px 0 0;
+          padding: 8px 8px 0;
+        }
+        .macbook-camera {
+          width: 5px; height: 5px;
+          background: #3A3A3C;
+          border-radius: 50%;
+          margin: 0 auto 5px;
+        }
+        .macbook-screen {
+          background: #0D0D0F;
+          border-radius: 4px;
+          overflow: hidden;
+          aspect-ratio: 16/10;
+        }
+        .macbook-base {
+          width: 340px; height: 12px;
+          background: linear-gradient(180deg, #2C2C2E 0%, #232325 100%);
+          border-radius: 0 0 3px 3px;
+          margin-left: -10px;
+        }
+        .macbook-foot {
+          width: 270px; height: 5px;
+          background: #1A1A1C;
+          border-radius: 0 0 6px 6px;
+          margin: 0 auto;
+        }
+        .browser-chrome {
+          background: #1E1E20;
+          padding: 5px 7px;
+          display: flex;
+          align-items: center;
+          gap: 4px;
+          border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+        .browser-dots { display: flex; gap: 3px; }
+        .browser-dot { width: 6px; height: 6px; border-radius: 50%; }
+        .browser-url {
+          flex: 1; height: 12px;
+          background: rgba(255,255,255,0.07);
+          border-radius: 3px;
+          margin: 0 6px;
+          display: flex; align-items: center; padding: 0 5px;
+        }
+        .url-text { font-size: 5px; color: rgba(255,255,255,0.35); font-family: monospace; }
+
+        /* iPhone realista */
+        .iphone-wrap {
+          position: absolute;
+          bottom: -20px;
+          right: -42px;
+          z-index: 4;
+          filter: drop-shadow(0 16px 36px rgba(0,0,0,0.22));
+          animation: iphoneFloat 5s ease-in-out 0.8s infinite;
+        }
+        .iphone-frame {
+          position: relative;
+          width: 88px;
+          height: 184px;
+          background: linear-gradient(145deg, #3C3C3E 0%, #1C1C1E 55%, #2A2A2C 100%);
+          border-radius: 22px;
+          padding: 10px 5px 12px;
+          box-shadow:
+            inset 0 0 0 1px rgba(255,255,255,0.13),
+            inset 0 0 0 2px rgba(0,0,0,0.7);
+        }
+        .iphone-btn-silent {
+          position: absolute; left: -2px; top: 20px;
+          width: 2px; height: 7px;
+          background: #2E2E30; border-radius: 1px 0 0 1px;
+        }
+        .iphone-btn-vol-up {
+          position: absolute; left: -2px; top: 33px;
+          width: 2px; height: 13px;
+          background: #2E2E30; border-radius: 1px 0 0 1px;
+        }
+        .iphone-btn-vol-dn {
+          position: absolute; left: -2px; top: 51px;
+          width: 2px; height: 13px;
+          background: #2E2E30; border-radius: 1px 0 0 1px;
+        }
+        .iphone-btn-power {
+          position: absolute; right: -2px; top: 38px;
+          width: 2px; height: 20px;
+          background: #2E2E30; border-radius: 0 1px 1px 0;
+        }
+        .iphone-screen-area {
+          background: #fff;
+          border-radius: 16px;
+          overflow: hidden;
+          height: 100%;
+          position: relative;
+        }
+        .iphone-di {
+          position: absolute;
+          top: 8px; left: 50%;
+          transform: translateX(-50%);
+          width: 26px; height: 8px;
+          background: #000;
+          border-radius: 8px;
+          z-index: 10;
+        }
+
+        /* Stat floating cards */
+        .stat-card {
+          position: absolute;
+          background: rgba(255,255,255,0.95);
+          backdrop-filter: blur(8px);
+          -webkit-backdrop-filter: blur(8px);
+          border: 1px solid rgba(0,0,0,0.07);
+          border-radius: 10px;
+          padding: 0.5rem 0.75rem;
+          box-shadow: 0 4px 20px rgba(0,0,0,0.09), 0 1px 3px rgba(0,0,0,0.05);
+          z-index: 5;
+          white-space: nowrap;
+        }
+        .stat-card-label { font-size: 0.5625rem; color: var(--fog); font-weight: 600; text-transform: uppercase; letter-spacing: 0.07em; margin-bottom: 2px; }
+        .stat-card-value { font-size: 1rem; font-weight: 700; color: var(--noir); line-height: 1.1; }
+        .stat-card-sub { font-size: 0.5625rem; color: var(--silver); margin-top: 1px; }
+        .stat-card-dot { width: 6px; height: 6px; border-radius: 50%; background: #34D399; display: inline-block; margin-right: 4px; box-shadow: 0 0 0 2px rgba(52,211,153,0.2); }
+        .stat-card-a { top: 6%; left: -4%; animation: cardFloat1 4.5s ease-in-out infinite; }
+        .stat-card-b { top: 10%; right: -2%; animation: cardFloat2 5.5s ease-in-out 1.2s infinite; }
+        .stat-card-c { bottom: 22%; left: -6%; animation: cardFloat1 5s ease-in-out 0.6s infinite; }
+
+        @media (max-width: 900px) {
+          .hero-visual { min-height: 360px; }
+          .macbook-body { width: 260px; }
+          .macbook-base { width: 280px; }
+          .stat-card-a { left: 0; }
+          .stat-card-c { left: 0; }
+          .stat-card-b { right: 0; }
+          .iphone-wrap { right: -16px; }
         }
 
         /* ── Trust Bar ── */
-        .trust-bar { background: var(--bg-light); border-top: 1px solid #EBEBEB; border-bottom: 1px solid #EBEBEB; padding: 2.25rem 0; }
-        .trust-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.5rem; text-align: center; }
-        .trust-number { font-size: 1.875rem; font-weight: 700; color: var(--noir); line-height: 1; margin-bottom: 0.25rem; }
-        .trust-label { font-size: 0.8125rem; color: var(--iron); }
+        .trust-bar { background: var(--noir); padding: 3rem 0; }
+        .trust-grid { display: grid; grid-template-columns: repeat(4, 1fr); text-align: center; }
+        .trust-item {
+          padding: 1rem 1.5rem;
+          border-right: 1px solid rgba(255,255,255,0.07);
+          position: relative;
+        }
+        .trust-item:last-child { border-right: none; }
+        .trust-item-icon {
+          font-size: 1.125rem; margin-bottom: 0.625rem;
+          display: flex; align-items: center; justify-content: center;
+          width: 36px; height: 36px; border-radius: 8px;
+          background: rgba(255,255,255,0.06); margin: 0 auto 0.75rem;
+          color: rgba(255,255,255,0.5);
+        }
+        .trust-number {
+          font-size: 2.625rem; font-weight: 800; color: var(--white);
+          line-height: 1; margin-bottom: 0.375rem;
+          letter-spacing: -0.04em;
+        }
+        .trust-number-suffix { font-size: 1.375rem; font-weight: 500; color: rgba(255,255,255,0.35); }
+        .trust-label { font-size: 0.8125rem; color: rgba(255,255,255,0.4); font-weight: 500; }
 
         /* ── Section base ── */
         .section { padding: 5rem 0; }
@@ -432,6 +651,9 @@ export default function PagelabLanding() {
           .hero-proof { justify-content: center; }
           .hero-image-wrapper { max-width: 520px; margin: 0 auto; }
           .trust-grid { grid-template-columns: repeat(2, 1fr); }
+          .trust-item { border-right: none; border-bottom: 1px solid rgba(255,255,255,0.07); }
+          .trust-item:nth-child(odd) { border-right: 1px solid rgba(255,255,255,0.07); }
+          .trust-item:nth-last-child(-n+2) { border-bottom: none; }
           .why-grid { grid-template-columns: 1fr; max-width: 440px; }
           .process-grid { grid-template-columns: 1fr; max-width: 380px; }
           .start-grid { grid-template-columns: 1fr; max-width: 460px; }
@@ -487,17 +709,6 @@ export default function PagelabLanding() {
                 Sin complicaciones, sin reuniones interminables, sin esperas.
               </p>
 
-              <div className="hero-proof">
-                <span className="proof-badge">
-                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><path d="M22 4L12 14.01l-3-3"/></svg>
-                  47 sitios entregados
-                </span>
-                <span className="proof-badge">
-                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
-                  2.8 días promedio
-                </span>
-              </div>
-
               <div className="hero-ctas">
                 <button className="btn btn-primary" onClick={() => navigate('/brief')}>Comienza Ahora</button>
                 <button className="btn btn-secondary" onClick={() => scrollToSection('pricing')}>Ver Planes</button>
@@ -506,21 +717,184 @@ export default function PagelabLanding() {
               <button className="hero-link" onClick={() => scrollToSection('portfolio')}>Ver ejemplos →</button>
             </div>
 
-            <div className="hero-image-wrapper">
-              <img src={heroImg} alt="Ejemplos de páginas web y sitios corporativos creados por Pagelab" />
+            <div className="hero-visual">
+              <div className="hero-visual-bg" />
+
+              {/* Stat cards flotantes */}
+              <div className="stat-card stat-card-a">
+                <div className="stat-card-label">Entrega promedio</div>
+                <div className="stat-card-value">3 días</div>
+                <div className="stat-card-sub">garantizado</div>
+              </div>
+              <div className="stat-card stat-card-b">
+                <div className="stat-card-label"><span className="stat-card-dot" />Activos ahora</div>
+                <div className="stat-card-value">47 sitios</div>
+                <div className="stat-card-sub">funcionando</div>
+              </div>
+              <div className="stat-card stat-card-c">
+                <div className="stat-card-label">Rating</div>
+                <div className="stat-card-value">4.9 ★</div>
+                <div className="stat-card-sub">+40 reseñas</div>
+              </div>
+
+              {/* MacBook */}
+              <div className="macbook-wrap">
+                <div className="macbook-body">
+                  <div className="macbook-camera" />
+                  <div className="macbook-screen">
+                    <div className="browser-chrome">
+                      <div className="browser-dots">
+                        <div className="browser-dot" style={{background:'#FF5F57'}} />
+                        <div className="browser-dot" style={{background:'#FFBD2E'}} />
+                        <div className="browser-dot" style={{background:'#28C840'}} />
+                      </div>
+                      <div className="browser-url">
+                        <span className="url-text">https://florestalaermita.cl</span>
+                      </div>
+                    </div>
+                    {/* Landing real */}
+                    <div style={{background:'#fff',height:'100%',overflow:'hidden',fontFamily:'Inter,sans-serif'}}>
+                      <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'5px 10px',borderBottom:'1px solid #F0F0F0'}}>
+                        <div style={{fontSize:'6.5px',fontWeight:800,letterSpacing:'-0.3px',color:'#111'}}>floresta.</div>
+                        <div style={{display:'flex',gap:'6px',alignItems:'center'}}>
+                          <span style={{fontSize:'4px',color:'#666'}}>Nosotros</span>
+                          <span style={{fontSize:'4px',color:'#666'}}>Servicios</span>
+                          <span style={{fontSize:'4px',color:'#666'}}>Galería</span>
+                          <span style={{fontSize:'4px',background:'#111',color:'#fff',padding:'2px 5px',borderRadius:'2px',fontWeight:600}}>Cotizar</span>
+                        </div>
+                      </div>
+                      <div style={{padding:'8px 10px 6px',background:'linear-gradient(160deg,#fff 0%,#F8F7FF 100%)'}}>
+                        <div style={{display:'inline-flex',alignItems:'center',gap:'3px',background:'#F0F0FF',border:'1px solid #E0DEFF',borderRadius:'20px',padding:'2px 6px',marginBottom:'5px'}}>
+                          <span style={{fontSize:'5px',color:'#F5A623'}}>★★★★★</span>
+                          <span style={{fontSize:'4px',fontWeight:600,color:'#555'}}>4.9 / 5.0</span>
+                          <span style={{fontSize:'4px',color:'#999'}}>· +40 clientes</span>
+                        </div>
+                        <div style={{fontSize:'9px',fontWeight:800,lineHeight:1.15,letterSpacing:'-0.3px',color:'#0F0F0F',marginBottom:'3px'}}>Eventos en la<br/>montaña. Únicos.</div>
+                        <div style={{fontSize:'4px',color:'#666',lineHeight:1.6,marginBottom:'5px'}}>El lugar perfecto para tu matrimonio o evento corporativo<br/>en la cordillera de los Andes.</div>
+                        <div style={{display:'flex',gap:'3px',marginBottom:'7px'}}>
+                          <span style={{fontSize:'4px',background:'#111',color:'#fff',padding:'3px 7px',borderRadius:'3px',fontWeight:600}}>Ver disponibilidad</span>
+                          <span style={{fontSize:'4px',border:'1px solid #D0D0D0',color:'#555',padding:'3px 6px',borderRadius:'3px'}}>Ver galería</span>
+                        </div>
+                      </div>
+                      <div style={{display:'grid',gridTemplateColumns:'2fr 1fr',gap:'2px',padding:'0 10px 7px',background:'#F8F7FF'}}>
+                        <div style={{background:'linear-gradient(135deg,#C8D8E8,#8BA8C8)',borderRadius:'4px',height:'34px'}} />
+                        <div style={{display:'flex',flexDirection:'column',gap:'2px'}}>
+                          <div style={{background:'linear-gradient(135deg,#D8C8E0,#A890B8)',borderRadius:'3px',flex:1}} />
+                          <div style={{background:'linear-gradient(135deg,#C8D0E0,#90A0B8)',borderRadius:'3px',flex:1}} />
+                        </div>
+                      </div>
+                      <div style={{display:'flex',justifyContent:'space-around',padding:'5px 10px',borderTop:'1px solid #EBEBEB',background:'#fff'}}>
+                        {[['200+','eventos'],['8 años','experiencia'],['4.9★','Google']].map(([v,l],i) => (
+                          <div key={i} style={{textAlign:'center'}}>
+                            <div style={{fontSize:'6px',fontWeight:700,color:'#111'}}>{v}</div>
+                            <div style={{fontSize:'3px',color:'#999'}}>{l}</div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div className="macbook-base" />
+                <div className="macbook-foot" />
+
+                {/* iPhone realista */}
+                <div className="iphone-wrap">
+                  <div className="iphone-frame">
+                    <div className="iphone-btn-silent" />
+                    <div className="iphone-btn-vol-up" />
+                    <div className="iphone-btn-vol-dn" />
+                    <div className="iphone-btn-power" />
+                    <div className="iphone-screen-area">
+                      <div className="iphone-di" />
+                      <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'14px 8px 3px',position:'relative',zIndex:1}}>
+                        <span style={{fontSize:'5.5px',fontWeight:700,color:'#000',letterSpacing:'-0.2px'}}>9:41</span>
+                        <div style={{display:'flex',gap:'2.5px',alignItems:'center'}}>
+                          <svg width="9" height="6" viewBox="0 0 9 6" fill="none">
+                            <rect x="0" y="3.5" width="1.5" height="2.5" rx="0.4" fill="#000"/>
+                            <rect x="2.2" y="2" width="1.5" height="4" rx="0.4" fill="#000"/>
+                            <rect x="4.4" y="0.5" width="1.5" height="5.5" rx="0.4" fill="#000"/>
+                            <rect x="6.6" y="0" width="1.5" height="6" rx="0.4" fill="#000" fillOpacity="0.25"/>
+                          </svg>
+                          <svg width="8" height="6" viewBox="0 0 8 6" fill="none">
+                            <path d="M4 5L5.2 3.5H2.8L4 5z" fill="#000"/>
+                            <path d="M1.8 3c0.6-0.6 1.4-0.9 2.2-0.9s1.6 0.3 2.2 0.9" stroke="#000" strokeWidth="0.8" fill="none" strokeLinecap="round"/>
+                            <path d="M0.4 1.8C1.4 0.7 2.6 0.1 4 0.1s2.6 0.6 3.6 1.7" stroke="#000" strokeWidth="0.8" fill="none" strokeLinecap="round"/>
+                          </svg>
+                          <div style={{display:'flex',alignItems:'center',gap:'0.5px'}}>
+                            <div style={{width:'11px',height:'5.5px',border:'0.8px solid rgba(0,0,0,0.35)',borderRadius:'1.5px',padding:'0.8px',display:'flex',alignItems:'stretch'}}>
+                              <div style={{width:'75%',background:'#000',borderRadius:'0.5px'}} />
+                            </div>
+                            <div style={{width:'1.2px',height:'3px',background:'rgba(0,0,0,0.35)',borderRadius:'1px'}} />
+                          </div>
+                        </div>
+                      </div>
+                      <div style={{padding:'3px 7px 0',fontFamily:'Inter,sans-serif'}}>
+                        <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'5px',paddingBottom:'4px',borderBottom:'1px solid #F0F0F0'}}>
+                          <div style={{fontSize:'6px',fontWeight:800,color:'#111',letterSpacing:'-0.2px'}}>floresta.</div>
+                          <div style={{display:'flex',flexDirection:'column',gap:'1.5px'}}>
+                            <div style={{width:'10px',height:'1px',background:'#555',borderRadius:'1px'}} />
+                            <div style={{width:'10px',height:'1px',background:'#555',borderRadius:'1px'}} />
+                            <div style={{width:'7px',height:'1px',background:'#555',borderRadius:'1px'}} />
+                          </div>
+                        </div>
+                        <div style={{display:'inline-flex',alignItems:'center',gap:'2px',background:'#F0F0FF',borderRadius:'10px',padding:'1.5px 4px',marginBottom:'4px'}}>
+                          <span style={{fontSize:'4px',color:'#F5A623'}}>★</span>
+                          <span style={{fontSize:'3.5px',fontWeight:600,color:'#555'}}>4.9 · +40 clientes</span>
+                        </div>
+                        <div style={{fontSize:'9px',fontWeight:800,lineHeight:1.15,color:'#0F0F0F',letterSpacing:'-0.3px',marginBottom:'4px'}}>Eventos en<br/>la montaña.</div>
+                        <div style={{fontSize:'3.5px',color:'#666',lineHeight:1.5,marginBottom:'5px'}}>El lugar perfecto para tu<br/>matrimonio en la cordillera.</div>
+                        <div style={{background:'#111',color:'#fff',fontSize:'4px',fontWeight:600,padding:'3px 0',borderRadius:'3px',textAlign:'center',marginBottom:'6px'}}>Ver disponibilidad →</div>
+                        <div style={{background:'linear-gradient(135deg,#C8D8E8,#8BA8C8)',borderRadius:'5px',height:'30px',marginBottom:'5px'}} />
+                        <div style={{display:'flex',justifyContent:'space-around',paddingTop:'4px',borderTop:'1px solid #F0F0F0'}}>
+                          {[['200+','eventos'],['8yr','exp'],['4.9★','rating']].map(([v,l],i) => (
+                            <div key={i} style={{textAlign:'center'}}>
+                              <div style={{fontSize:'5.5px',fontWeight:700,color:'#111'}}>{v}</div>
+                              <div style={{fontSize:'3px',color:'#999'}}>{l}</div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
       </section>
 
       {/* ── 2. Trust Bar ── */}
-      <div className="trust-bar">
+      <div className="trust-bar" ref={trustBarRef}>
         <div className="container">
           <div className="trust-grid">
-            <div><div className="trust-number">47</div><div className="trust-label">sitios entregados</div></div>
-            <div><div className="trust-number">2.8 días</div><div className="trust-label">promedio de entrega</div></div>
-            <div><div className="trust-number">4.9 / 5</div><div className="trust-label">rating de clientes</div></div>
-            <div><div className="trust-number">100%</div><div className="trust-label">sitios activos</div></div>
+            <div className="trust-item">
+              <div className="trust-item-icon">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+              </div>
+              <div className="trust-number">{counters.sites}<span className="trust-number-suffix">+</span></div>
+              <div className="trust-label">sitios entregados</div>
+            </div>
+            <div className="trust-item">
+              <div className="trust-item-icon">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+              </div>
+              <div className="trust-number">{counters.days.toFixed(1)}<span className="trust-number-suffix"> días</span></div>
+              <div className="trust-label">promedio de entrega</div>
+            </div>
+            <div className="trust-item">
+              <div className="trust-item-icon">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><path d="M22 4L12 14.01l-3-3"/></svg>
+              </div>
+              <div className="trust-number">{counters.rating.toFixed(1)}<span className="trust-number-suffix"> / 5</span></div>
+              <div className="trust-label">rating de clientes</div>
+            </div>
+            <div className="trust-item">
+              <div className="trust-item-icon">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+              </div>
+              <div className="trust-number">{counters.active}<span className="trust-number-suffix">%</span></div>
+              <div className="trust-label">sitios activos</div>
+            </div>
           </div>
         </div>
       </div>
