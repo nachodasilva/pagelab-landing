@@ -62,7 +62,7 @@ export default function Gracias() {
   }, []);
 
   return (
-    <div style={{ fontFamily: 'Inter, -apple-system, BlinkMacSystemFont, sans-serif', color: '#121212', minHeight: '100vh', background: '#F8F8F8' }}>
+    <div style={{ fontFamily: 'Geist, -apple-system, BlinkMacSystemFont, sans-serif', color: '#121212', minHeight: '100vh', background: '#F8F8F8' }}>
       <style>{`
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
         body { -webkit-font-smoothing: antialiased; }

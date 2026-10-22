@@ -161,7 +161,7 @@ export default function PagelabLanding() {
           --accent: #4A90E2;
           --bg-light: #F8F8F8;
           --bg-mid: #F2F2F2;
-          --font: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+          --font: 'Geist', -apple-system, BlinkMacSystemFont, sans-serif;
         }
 
         body {
@@ -753,7 +753,7 @@ export default function PagelabLanding() {
                       </div>
                     </div>
                     {/* Landing real */}
-                    <div style={{background:'#fff',height:'100%',overflow:'hidden',fontFamily:'Inter,sans-serif'}}>
+                    <div style={{background:'#fff',height:'100%',overflow:'hidden',fontFamily:'Geist,sans-serif'}}>
                       <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'5px 10px',borderBottom:'1px solid #F0F0F0'}}>
                         <div style={{fontSize:'6.5px',fontWeight:800,letterSpacing:'-0.3px',color:'#111'}}>floresta.</div>
                         <div style={{display:'flex',gap:'6px',alignItems:'center'}}>
@@ -828,7 +828,7 @@ export default function PagelabLanding() {
                           </div>
                         </div>
                       </div>
-                      <div style={{padding:'3px 7px 0',fontFamily:'Inter,sans-serif'}}>
+                      <div style={{padding:'3px 7px 0',fontFamily:'Geist,sans-serif'}}>
                         <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'5px',paddingBottom:'4px',borderBottom:'1px solid #F0F0F0'}}>
                           <div style={{fontSize:'6px',fontWeight:800,color:'#111',letterSpacing:'-0.2px'}}>floresta.</div>
                           <div style={{display:'flex',flexDirection:'column',gap:'1.5px'}}>
