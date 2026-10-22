@@ -6,17 +6,21 @@ import imgKivo from './assets/Kivo.webp';
 import imgFloresta from './assets/Floresta la ermita.webp';
 import imgAcerca from './assets/Acerca Consultores.webp';
 import imgConecta from './assets/Conecta Franquicias.webp';
+import {
+  PLANES, FORMSUBMIT_AJAX_URL, CUOTAS_DISPONIBLES, GARANTIA_TEXTO,
+  SITIOS_ENTREGADOS, RATING, TIEMPO_RESPUESTA_PROMEDIO, formatCLP,
+} from './config';
+import { VARIANTS } from './variants';
+import { track, trackViewPricingOnce } from './lib/track';
+import { buildWhatsAppLink, trackWhatsApp } from './lib/whatsapp';
+import { usePageMeta } from './lib/meta';
+import WhatsAppButton, { WhatsAppIcon } from './components/WhatsAppButton';
+import { FormExtras, Garantia } from './components/FormExtras';
 
-const FORM_EMAIL = 'silvapignacio@gmail.com';
-
-const DAYS = ['domingo', 'lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado'];
-
-function getDeliveryDays() {
-  const today = new Date();
-  const delivery = new Date();
-  delivery.setDate(today.getDate() + 3);
-  return { todayDay: DAYS[today.getDay()], deliveryDay: DAYS[delivery.getDay()] };
-}
+// "37 min." → 37 y " min." para la animación del contador
+const RESP_NUM = parseInt(TIEMPO_RESPUESTA_PROMEDIO, 10) || 0;
+const RESP_UNIT = TIEMPO_RESPUESTA_PROMEDIO.replace(/^\d+/, '');
+const LEAD_PLAN = { 'Landing Page': 'landing', 'Sitio Web': 'sitio' };
 
 // ── SVG Icons ─────────────────────────────────────────────────────────────
 const IconClipboard = () => (
@@ -58,14 +62,40 @@ const IconBriefcase = () => (
   </svg>
 );
 
-export default function PagelabLanding() {
+export default function PagelabLanding({ variant = 'home' }) {
   const navigate = useNavigate();
+  const v = VARIANTS[variant] ?? VARIANTS.home;
+  usePageMeta(v.title, v.description);
   const [openFaq, setOpenFaq] = useState(null);
   const [formSubmitted, setFormSubmitted] = useState(false);
-  const { todayDay, deliveryDay } = getDeliveryDays();
-  const [counters, setCounters] = useState({ sites: 0, days: 0, rating: 0, active: 0 });
+  const [counters, setCounters] = useState({ sites: 0, days: 0, rating: 0, resp: 0 });
+  const [pastHero, setPastHero] = useState(false);
   const trustBarRef = useRef(null);
   const countersStarted = useRef(false);
+  const heroRef = useRef(null);
+  const pricingRef = useRef(null);
+
+  useEffect(() => { window.scrollTo(0, 0); }, [variant]);
+
+  // Barra fija inferior en móvil: aparece al pasar el hero
+  useEffect(() => {
+    const el = heroRef.current;
+    if (!el) return;
+    const obs = new IntersectionObserver(([e]) => setPastHero(!e.isIntersecting && e.boundingClientRect.top < 0));
+    obs.observe(el);
+    return () => obs.disconnect();
+  }, []);
+
+  // view_pricing: una vez por sesión
+  useEffect(() => {
+    const el = pricingRef.current;
+    if (!el) return;
+    const obs = new IntersectionObserver(([e]) => {
+      if (e.isIntersecting) { trackViewPricingOnce(); obs.disconnect(); }
+    }, { threshold: 0.25 });
+    obs.observe(el);
+    return () => obs.disconnect();
+  }, []);
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -89,10 +119,10 @@ export default function PagelabLanding() {
           step++;
           const ease = 1 - Math.pow(1 - Math.min(step / steps, 1), 3);
           setCounters({
-            sites: Math.round(ease * 47),
+            sites: Math.round(ease * SITIOS_ENTREGADOS),
             days: Math.round(ease * 28) / 10,
-            rating: Math.round(ease * 49) / 10,
-            active: Math.round(ease * 100),
+            rating: Math.round(ease * RATING * 10) / 10,
+            resp: Math.round(ease * RESP_NUM),
           });
           if (step >= steps) clearInterval(timer);
         }, duration / steps);
@@ -108,46 +138,62 @@ export default function PagelabLanding() {
 
   const toggleFaq = (i) => setOpenFaq(openFaq === i ? null : i);
 
+  // "Pagar y empezar hoy": con plan va al checkout, sin plan baja a precios
+  const goPay = (plan) => {
+    track('select_item', { plan });
+    if (plan) navigate(`/pagar?plan=${plan}`);
+    else scrollToSection('pricing');
+  };
+
   const handleFormSubmit = async (e) => {
     e.preventDefault();
     const formData = new FormData(e.target);
+    const plan = LEAD_PLAN[formData.get('plan')];
     try {
-      const res = await fetch(`https://formsubmit.co/ajax/${FORM_EMAIL}`, {
+      const res = await fetch(FORMSUBMIT_AJAX_URL, {
         method: 'POST', body: formData, headers: { 'Accept': 'application/json' }
       });
       if (res.ok) {
-        window.fbq?.('track', 'Lead');
-        window.gtag?.('event', 'generate_lead');
+        track('generate_lead', { plan });
         setFormSubmitted(true);
       }
     } catch { setFormSubmitted(true); }
   };
 
   const faqs = [
-    { q: '¿Realmente puedo tener mi página en 3 días?', a: 'Sí. Una vez que nos envías tu información comenzamos de inmediato. Plan Landing listo en 48-72 horas, Sitio Web en 3-5 días. Incluye tiempo para ajustes.' },
-    { q: '¿Puedo pagar directo o necesito consultar primero?', a: 'Puedes elegir. Si ya sabes qué necesitas, pagas directamente y empezamos hoy. Si tienes dudas, completa el formulario y te respondemos en menos de 2 horas.' },
-    { q: '¿Qué pasa después de llenar el formulario?', a: 'Te respondemos por email en menos de 2 horas con un plan personalizado y link de pago. Una vez pagas, te enviamos un formulario de brief donde nos cuentas sobre tu negocio y envías fotos/logos.' },
+    { q: '¿Realmente puedo tener mi página en 3 días?', a: `Sí. Una vez que recibimos tu brief comenzamos de inmediato. La Landing Page queda lista en ${PLANES.landing.plazo} y el Sitio Web en ${PLANES.sitio.plazo}, con tiempo incluido para ajustes.` },
+    { q: '¿Puedo pagar directo o necesito consultar primero?', a: 'Puedes elegir. Si tienes dudas, escríbenos por WhatsApp: te ayudamos a elegir el plan y te respondemos en minutos. Si ya sabes qué necesitas, pagas en línea y empezamos el mismo día.' },
+    { q: '¿Qué pasa después de llenar el formulario?', a: 'Si pagas en línea, al terminar te pedimos el brief (5 minutos). Si nos escribes por WhatsApp o email, te respondemos en minutos con la recomendación de plan y el link de pago.' },
+    ...(CUOTAS_DISPONIBLES ? [{ q: '¿Puedo pagar en cuotas?', a: 'Sí. El pago es con Mercado Pago, donde puedes elegir pagar en cuotas con tu tarjeta de crédito según las opciones de tu banco.' }] : []),
+    ...(GARANTIA_TEXTO ? [{ q: '¿Qué garantía tengo?', a: `${GARANTIA_TEXTO} Además, revisas un preview antes de publicar y tienes rondas de cambios incluidas. Solo publicamos cuando estés conforme.` }] : []),
     { q: '¿Puedo ver el sitio antes de que quede público?', a: 'Sí. Te enviamos un preview para que lo revises. Tienes rondas de cambios incluidas. Solo publicamos cuando estés 100% conforme.' },
     { q: '¿Puedo ver ejemplos antes de decidir?', a: 'Sí, revisa la sección "Trabajos más recientes" con sitios reales que hemos creado.' },
-    { q: '¿Qué pasa si no me gusta el resultado?', a: 'Revisas el preview antes de publicar y pedís los cambios incluidos. Solo publicamos cuando estés conforme.' },
+    { q: '¿Qué pasa si no me gusta el resultado?', a: 'Revisas el preview antes de publicar y pides los cambios incluidos. Solo publicamos cuando estés conforme.' },
     { q: '¿Necesito conocimientos técnicos?', a: 'Para nada. Solo necesitas tus textos, imágenes y logo. Nosotros nos encargamos del diseño, programación, publicación y seguridad.' },
     { q: '¿Tengo que pagar hosting o dominio aparte?', a: 'El hosting está incluido sin costo mensual. El dominio lo puedes traer si ya tienes uno, o te ayudamos a comprarlo (aprox $15-20k/año). Sin costos ocultos.' },
   ];
 
+  // url: link "Ver sitio en vivo". Sin url, no se muestra el link.
   const portfolioItems = [
-    { img: imgKivo, objPos: 'top', cat: 'Marketing Digital', title: 'KIVO', desc: 'Plataforma de gestión de Google Ads con IA. Landing enfocada en conversión.' },
-    { img: imgFloresta, objPos: 'top', cat: 'Eventos & Turismo', title: 'Floresta La Ermita', desc: 'Centro de eventos en la cordillera. Diseño elegante con galería y cotización.' },
-    { img: imgAcerca, objPos: 'center', cat: 'Consultoría', title: 'Acerca Consultores', desc: 'Cotización online para consultoría empresarial. Formularios inteligentes.' },
-    { bg: 'linear-gradient(135deg, #d32f2f, #f57c00)', label: 'CONTIGO PAN\nY CEBOLLA', cat: 'Gastronomía', title: 'Contigo Pan y Cebolla', desc: 'Emprendimiento gastronómico. Menú digital y reservas online.' },
-    { img: imgConecta, objPos: 'center', cat: 'Negocios', title: 'Conecta Franquicias', desc: 'Marketplace de franquicias. Buscador avanzado y sistema de matching.' },
+    { img: imgKivo, objPos: 'top', cat: 'Marketing Digital', title: 'KIVO', desc: 'Plataforma de gestión de Google Ads con IA. Landing enfocada en conversión.', url: 'https://kivo.cl' },
+    { img: imgFloresta, objPos: 'top', cat: 'Eventos & Turismo', title: 'Floresta La Ermita', desc: 'Centro de eventos en la cordillera. Diseño elegante con galería y cotización.', url: '' },
+    { img: imgAcerca, objPos: 'center', cat: 'Consultoría', title: 'Acerca Consultores', desc: 'Cotización online para consultoría empresarial. Formularios inteligentes.', url: 'https://acercaconsultores.cl' },
+    { bg: 'linear-gradient(135deg, #d32f2f, #f57c00)', label: 'CONTIGO PAN\nY CEBOLLA', cat: 'Gastronomía', title: 'Contigo Pan y Cebolla', desc: 'Emprendimiento gastronómico. Menú digital y reservas online.', url: 'https://contigopanycebolla.cl' },
+    { img: imgConecta, objPos: 'center', cat: 'Negocios', title: 'Conecta Franquicias', desc: 'Marketplace de franquicias. Buscador avanzado y sistema de matching.', url: 'https://conectafranquicias.cl' },
   ];
 
+  // foto: URL de la foto del cliente · url: sitio del cliente. Vacíos = iniciales y sin link.
   const testimonials = [
-    { quote: '"Después de gastar $1.5M en una agencia que nunca entregó, Pagelab me hizo la página en 4 días. Funciona, se ve bien, y no tuve que perseguir a nadie."', init: 'NC', name: 'Nicolás Chocaír', role: 'Acerca Consultores' },
-    { quote: '"Llevaba 3 semanas peleando con Wix. Les pagué un viernes, el martes ya estaba publicado. La única vez que algo salió como prometieron."', init: 'NR', name: 'Nicolás Rodríguez', role: 'Contigo Pan y Cebolla' },
-    { quote: '"Necesitaba una página para una campaña urgente. Todos me dijeron imposible. Pagelab lo hizo en 4 días. Salvaron mi lanzamiento."', init: 'BC', name: 'Bruno Calderón', role: 'KIVO' },
-    { quote: '"Proceso súper simple. Llené el formulario, me respondieron en 1 hora, y 3 días después tenía mi sitio listo. Exactamente lo que prometieron."', init: 'SO', name: 'Sebastián Ortíz', role: 'Conecta Franquicias' },
-    { quote: '"Sin jerga técnica, sin reuniones. Me explicaron todo en simple y entregaron exactamente lo que necesitaba a tiempo."', init: 'RS', name: 'Rodrigo Silva', role: 'Chef & Emprendedor' },
+    { quote: '"Después de gastar $1.5M en una agencia que nunca entregó, Pagelab me hizo la página en 4 días. Funciona, se ve bien, y no tuve que perseguir a nadie."', init: 'NC', name: 'Nicolás Chocaír', role: 'Acerca Consultores', foto: '', url: '' },
+    { quote: '"Llevaba 3 semanas peleando con Wix. Les pagué un viernes, el martes ya estaba publicado. La única vez que algo salió como prometieron."', init: 'NR', name: 'Nicolás Rodríguez', role: 'Contigo Pan y Cebolla', foto: '', url: '' },
+    { quote: '"Necesitaba una página para una campaña urgente. Todos me dijeron imposible. Pagelab lo hizo en 4 días. Salvaron mi lanzamiento."', init: 'BC', name: 'Bruno Calderón', role: 'KIVO', foto: '', url: '' },
+    { quote: '"Proceso súper simple. Llené el formulario, me respondieron en 1 hora, y 3 días después tenía mi sitio listo. Exactamente lo que prometieron."', init: 'SO', name: 'Sebastián Ortíz', role: 'Conecta Franquicias', foto: '', url: '' },
+    { quote: '"Sin jerga técnica, sin reuniones. Me explicaron todo en simple y entregaron exactamente lo que necesitaba a tiempo."', init: 'RS', name: 'Rodrigo Silva', role: 'Chef & Emprendedor', foto: '', url: '' },
+  ];
+
+  const pricingPlans = [
+    { ...PLANES.landing, desc: 'Perfecto para validar tu idea o lanzar una campaña específica', features: ['1 página completa', 'Hasta 6 secciones', 'Diseño profesional', 'SEO optimizado', 'Dominio incluido 1er año', 'Hosting gratis para siempre', 'Certificado de seguridad incluido', '1 ronda de cambios', `Entrega en ${PLANES.landing.plazo}`] },
+    { ...PLANES.sitio, desc: 'Para negocios que necesitan explicar su propuesta y convertir visitantes', features: ['Hasta 5 páginas', 'Diseño profesional', 'SEO optimizado', 'Dominio incluido 1er año', 'Hosting gratis para siempre', 'Certificado de seguridad incluido', 'Formulario de contacto', '2 rondas de cambios', `Entrega en ${PLANES.sitio.plazo}`] },
   ];
 
   return (
@@ -199,8 +245,7 @@ export default function PagelabLanding() {
         .nav { display: flex; gap: 2rem; align-items: center; }
         .nav a { font-size: 0.9375rem; color: var(--iron); text-decoration: none; cursor: pointer; transition: color 0.2s; }
         .nav a:hover { color: var(--noir); }
-        .nav-cta { background: var(--noir); color: var(--white) !important; padding: 0.5rem 1.125rem; border-radius: 6px; font-weight: 500; }
-        .nav-cta:hover { background: var(--charcoal); }
+        .header-actions { display: flex; align-items: center; gap: 2rem; }
 
         /* ── Buttons ── */
         .btn {
@@ -349,6 +394,8 @@ export default function PagelabLanding() {
         .portfolio-card:hover { box-shadow: 0 8px 24px rgba(0,0,0,0.08); transform: translateY(-4px); }
         .portfolio-screenshot { width: 100%; aspect-ratio: 16/9; overflow: hidden; }
         .portfolio-card-content { padding: 1.25rem; }
+        .project-live { display: inline-block; margin-top: 0.625rem; font-size: 0.8125rem; font-weight: 600; color: var(--noir); text-decoration: underline; text-underline-offset: 3px; }
+        .project-live:hover { color: var(--iron); }
         .project-category { font-size: 0.6875rem; color: var(--fog); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 0.3rem; font-weight: 600; }
         .project-info h3 { font-size: 1rem; font-weight: 600; margin-bottom: 0.375rem; color: var(--noir); }
         .project-description { font-size: 0.875rem; line-height: 1.6; color: var(--iron); }
@@ -358,6 +405,12 @@ export default function PagelabLanding() {
         .pricing-cards { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1.5rem; max-width: 800px; margin: 0 auto; }
         .pricing-card { background: var(--white); border: 1.5px solid #E0E0E0; border-radius: 12px; padding: 2rem; transition: all 0.2s; }
         .pricing-card:hover { border-color: var(--charcoal); transform: translateY(-3px); box-shadow: 0 12px 32px rgba(0,0,0,0.07); }
+        .pricing-card.featured { border: 2px solid var(--noir); box-shadow: 0 12px 32px rgba(0,0,0,0.07); }
+        .plan-label-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem; }
+        .plan-label-row .plan-label { margin-bottom: 0; }
+        .plan-badge { background: var(--noir); color: var(--white); padding: 3px 10px; border-radius: 100px; font-size: 0.6875rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; }
+        .plan-cuotas { font-size: 0.8125rem; color: var(--iron); margin-bottom: 0.25rem; }
+        .pricing-card .garantia { margin-top: 1.25rem; }
         .plan-label { font-size: 0.6875rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: var(--fog); margin-bottom: 0.75rem; }
         .plan-name { font-size: 1.375rem; font-weight: 700; color: var(--noir); margin-bottom: 0.375rem; }
         .plan-desc { font-size: 0.875rem; color: var(--iron); margin-bottom: 1.5rem; line-height: 1.5; }
@@ -370,8 +423,6 @@ export default function PagelabLanding() {
         .features-list li::before { content: '✓'; position: absolute; left: 0; color: var(--noir); font-weight: 700; font-size: 0.875rem; }
         .plan-ctas { display: flex; flex-direction: column; gap: 0.625rem; }
         .plan-ctas .btn { width: 100%; }
-        .plan-link { display: block; text-align: center; font-size: 0.8125rem; color: var(--fog); text-decoration: underline; cursor: pointer; background: none; border: none; font-family: var(--font); margin-top: 0.375rem; }
-        .plan-link:hover { color: var(--iron); }
 
         /* ── Testimonials ── */
         .testimonials-wrapper { overflow: hidden; padding: 1rem 0; }
@@ -381,8 +432,10 @@ export default function PagelabLanding() {
         .testimonial { background: var(--white); border: 1px solid #E8E8E8; border-radius: 10px; padding: 1.5rem; min-width: 360px; max-width: 360px; flex-shrink: 0; }
         .testimonial-quote { font-size: 0.9375rem; line-height: 1.7; color: var(--iron); margin-bottom: 1.25rem; }
         .testimonial-author { display: flex; align-items: center; gap: 0.75rem; }
-        .author-avatar { width: 40px; height: 40px; border-radius: 50%; background: var(--bg-mid); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.8125rem; color: var(--iron); flex-shrink: 0; }
+        .author-avatar { width: 40px; height: 40px; border-radius: 50%; background: var(--bg-mid); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.8125rem; color: var(--iron); flex-shrink: 0; overflow: hidden; }
+        .author-avatar img { width: 100%; height: 100%; object-fit: cover; }
         .author-info strong { display: block; font-size: 0.875rem; color: var(--noir); }
+        .author-info a { color: inherit; text-decoration: underline; text-underline-offset: 2px; }
         .author-info span { font-size: 0.8125rem; color: var(--fog); }
 
         /* ── FAQ ── */
@@ -395,6 +448,8 @@ export default function PagelabLanding() {
         .faq-answer { max-height: 0; overflow: hidden; transition: max-height 0.3s ease; }
         .faq-answer.open { max-height: 400px; }
         .faq-answer-content { padding-bottom: 1.25rem; font-size: 0.9375rem; line-height: 1.7; color: var(--iron); }
+        .faq-cta { max-width: 720px; margin: 2.5rem auto 0; display: flex; flex-direction: column; align-items: center; gap: 0.875rem; text-align: center; }
+        .faq-cta p { font-size: 1rem; font-weight: 600; color: var(--noir); }
 
         /* ── CTA Final ── */
         .final-cta {}
@@ -464,6 +519,9 @@ export default function PagelabLanding() {
         .whatsapp-btn:hover { transform: scale(1.1); }
         .whatsapp-btn svg { width: 28px; height: 28px; fill: white; }
 
+        /* ── Barra fija inferior (solo móvil) ── */
+        .mobile-bar { display: none; }
+
         /* ── Responsive ── */
         @media (max-width: 1024px) {
           .form-layout { grid-template-columns: 1fr; gap: 2.5rem; }
@@ -489,10 +547,27 @@ export default function PagelabLanding() {
           .hero { padding: 3.5rem 0 2.5rem; background-size: 100% 100%; }
           .section { padding: 3.5rem 0; }
           .hero-ctas { flex-direction: column; width: 100%; }
-          .hero-ctas .btn { width: 100%; }
+          .hero-ctas .btn, .hero-ctas .wa-btn { width: 100%; }
           .nav { display: none; }
           .footer-bottom { flex-direction: column; text-align: center; }
           .container { padding: 0 1.25rem; }
+          .portfolio-card { min-width: 300px; max-width: 300px; }
+          .testimonial { min-width: 300px; max-width: 300px; }
+          .final-ctas { flex-direction: column; align-items: stretch; }
+          .footer { padding-bottom: calc(1.5rem + 76px + env(safe-area-inset-bottom)); }
+
+          .mobile-bar {
+            display: flex; gap: 0.625rem;
+            position: fixed; left: 0; right: 0; bottom: 0; z-index: 1000;
+            padding: 0.75rem 1.25rem calc(0.75rem + env(safe-area-inset-bottom));
+            background: var(--white); border-top: 1px solid #ECECEC;
+            box-shadow: 0 -4px 16px rgba(0,0,0,0.06);
+            transform: translateY(110%); transition: transform 0.25s ease;
+          }
+          .mobile-bar.visible { transform: translateY(0); }
+          .mobile-bar .wa-btn { flex: 1.4; padding: 0.75rem 1rem; }
+          .mobile-bar .btn { flex: 1; padding: 0.75rem 1rem; }
+          .whatsapp-btn.hidden-mobile { opacity: 0; pointer-events: none; transform: scale(0.8); }
         }
       `}</style>
 
@@ -501,40 +576,38 @@ export default function PagelabLanding() {
         <div className="container">
           <div className="header-inner">
             <div className="logo">Pagelab.</div>
-            <nav className="nav">
-              <a onClick={() => scrollToSection('proceso')}>Proceso</a>
-              <a onClick={() => scrollToSection('pricing')}>Precios</a>
-              <a onClick={() => scrollToSection('faq')}>FAQ</a>
-              <a className="nav-cta" onClick={() => navigate('/brief')}>Comenzar</a>
-            </nav>
+            <div className="header-actions">
+              <nav className="nav">
+                <a onClick={() => scrollToSection('proceso')}>Proceso</a>
+                <a onClick={() => scrollToSection('pricing')}>Precios</a>
+                <a onClick={() => scrollToSection('faq')}>FAQ</a>
+              </nav>
+              <WhatsAppButton origen="header" mensaje={v.waMensaje} compact />
+            </div>
           </div>
         </div>
       </header>
 
       {/* ── 1. Hero ── */}
-      <section className="hero" style={{ backgroundImage: `url(${heroBg})` }}>
+      <section className="hero" ref={heroRef} style={{ backgroundImage: `url(${heroBg})` }}>
         <div className="container">
           <div className="hero-content">
             <div className="hero-rating-badge">
               <span className="rating-stars">★★★★★</span>
-              <span className="rating-score">4.9 <span>/ 5.0</span></span>
+              <span className="rating-score">{RATING.toFixed(1)} <span>/ 5.0</span></span>
               <span className="rating-sep" />
-              <span className="rating-clients">+40 clientes satisfechos</span>
+              <span className="rating-clients">{SITIOS_ENTREGADOS}+ sitios entregados</span>
             </div>
 
-            <h1 className="hero-headline">Tu página web profesional lista en 3 días</h1>
+            <h1 className="hero-headline">{v.h1}</h1>
 
-            <p className="hero-sub">
-              Envías tu contenido hoy <strong>{todayDay}</strong>. Recibes tu sitio
-              funcionando el <strong>{deliveryDay}</strong>.<br />
-              Sin complicaciones, sin reuniones interminables, sin esperas.
-            </p>
+            <p className="hero-sub">{v.sub}</p>
 
             <div className="hero-ctas">
-              <button className="btn btn-primary" onClick={() => navigate('/brief')}>Comienza Ahora</button>
-              <button className="btn btn-secondary" onClick={() => scrollToSection('pricing')}>Ver Planes</button>
+              <WhatsAppButton origen="hero" mensaje={v.waMensaje} />
+              <button className="btn btn-secondary" onClick={() => goPay()}>Pagar y empezar hoy</button>
             </div>
-            <div className="cta-note">Te respondemos en menos de 2 horas</div>
+            <div className="cta-note">Respuesta promedio: {TIEMPO_RESPUESTA_PROMEDIO} · Sin compromiso</div>
             <button className="hero-link" onClick={() => scrollToSection('portfolio')}>Ver ejemplos →</button>
           </div>
         </div>
@@ -569,8 +642,8 @@ export default function PagelabLanding() {
               <div className="trust-item-icon">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
               </div>
-              <div className="trust-number">{counters.active}<span className="trust-number-suffix">%</span></div>
-              <div className="trust-label">sitios activos</div>
+              <div className="trust-number">{counters.resp}<span className="trust-number-suffix">{RESP_UNIT}</span></div>
+              <div className="trust-label">respuesta promedio</div>
             </div>
           </div>
         </div>
@@ -609,9 +682,9 @@ export default function PagelabLanding() {
           </div>
           <div className="process-grid">
             {[
-              { n: '01', title: 'Envías tu contenido', desc: 'Llenas un formulario simple: qué hace tu negocio, qué quieres mostrar, fotos si las tienes. 10 minutos máximo.', time: '⏱ 10 minutos' },
-              { n: '02', title: 'Nosotros creamos tu sitio', desc: 'En 48-72 horas diseñamos, programamos y configuramos todo. Te enviamos un preview para que lo revises.', time: '⏱ 48-72 horas' },
-              { n: '03', title: 'Tu sitio está en vivo', desc: 'Apruebas el preview, nosotros lo subimos con tu dominio. Quedas con tu sitio funcionando y accesos a todo.', time: '⏱ Total: 3-5 días' },
+              { n: '01', title: 'Envías tu contenido', desc: 'Llenas un brief simple: qué hace tu negocio, qué quieres mostrar, fotos si las tienes. 5 minutos máximo.', time: '⏱ 5 minutos' },
+              { n: '02', title: 'Nosotros creamos tu sitio', desc: 'Diseñamos, programamos y configuramos todo. Te enviamos un preview para que lo revises.', time: `⏱ Landing: ${PLANES.landing.plazo} · Sitio: ${PLANES.sitio.plazo}` },
+              { n: '03', title: 'Tu sitio está en vivo', desc: 'Apruebas el preview, nosotros lo subimos con tu dominio. Quedas con tu sitio funcionando y accesos a todo.', time: '⏱ Publicamos al aprobar' },
             ].map(({ n, title, desc, time }, i) => (
               <div key={i} className="process-step">
                 <div className="step-num">{n}</div>
@@ -633,25 +706,25 @@ export default function PagelabLanding() {
           </div>
           <div className="start-grid">
             <div className="start-card">
-              <div className="start-title">Cuéntanos qué necesitas</div>
-              <p className="start-desc">Completas un formulario rápido con la info de tu negocio. Te respondemos en menos de 2 horas con tu plan personalizado y link de pago.</p>
+              <div className="start-title">Prefiero conversar primero</div>
+              <p className="start-desc">Escríbenos por WhatsApp, te ayudamos a elegir el plan y resolvemos tus dudas. Respondemos en minutos.</p>
               <ul className="start-benefits">
-                <li>✓ Aclaramos todas tus dudas antes</li>
                 <li>✓ Te ayudamos a elegir el plan correcto</li>
-                <li>✓ Confirmamos que tenemos todo lo necesario</li>
+                <li>✓ Resolvemos tus dudas antes de pagar</li>
+                <li>✓ Sin compromiso</li>
               </ul>
-              <button className="btn btn-primary" onClick={() => navigate('/brief')}>Comienza Ahora</button>
-              <div className="start-timing">Respuesta en menos de 2 horas</div>
+              <WhatsAppButton origen="como_empezar" mensaje={v.waMensaje} />
+              <div className="start-timing">Respuesta promedio: {TIEMPO_RESPUESTA_PROMEDIO}</div>
             </div>
             <div className="start-card">
               <div className="start-title">Ya sé lo que quiero</div>
-              <p className="start-desc">Tienes claro si necesitas landing page o sitio web. Pagas ahora, llenas el brief, y empezamos inmediatamente.</p>
+              <p className="start-desc">Eliges tu plan, pagas en línea y nos envías tu contenido después del pago. Empezamos el mismo día.</p>
               <ul className="start-benefits">
-                <li>✓ Empezamos hoy mismo</li>
-                <li>✓ Sin esperar respuesta</li>
+                <li>✓ Empezamos el mismo día</li>
+                <li>✓ Pago seguro con Mercado Pago</li>
                 <li>✓ Proceso 100% online</li>
               </ul>
-              <button className="btn btn-secondary" onClick={() => scrollToSection('pricing')}>Ver Planes</button>
+              <button className="btn btn-secondary" onClick={() => goPay()}>Pagar y empezar hoy</button>
               <div className="start-timing">Inicio inmediato</div>
             </div>
           </div>
@@ -667,17 +740,17 @@ export default function PagelabLanding() {
           </div>
           <div className="cases-grid">
             {[
-              { Icon: IconRocket, title: '¿Validando una idea?', desc: 'Tu landing page lista en 3 días por $200.000. Lanza rápido, valida con usuarios reales, itera después.' },
-              { Icon: IconBuilding, title: '¿Negocio sin web?', desc: 'Sitio corporativo completo por $400.000. Muestra tus servicios, genera confianza, recibe consultas. Sin depender de Instagram o Facebook.' },
-              { Icon: IconBriefcase, title: '¿Portfolio profesional?', desc: 'Tu portafolio online en 3 días por $200.000. Destaca tu trabajo, cierra más clientes, deja de mandar PDFs.' },
-            ].map(({ Icon, title, desc }, i) => (
+              { Icon: IconRocket, origen: 'caso_validar', plan: 'landing', title: '¿Validando una idea?', desc: `Tu landing page lista en ${PLANES.landing.plazo} por ${formatCLP(PLANES.landing.precio)}. Lanza rápido, valida con usuarios reales, itera después.` },
+              { Icon: IconBuilding, origen: 'caso_negocio', plan: 'sitio', title: '¿Negocio sin web?', desc: `Sitio corporativo completo por ${formatCLP(PLANES.sitio.precio)}. Muestra tus servicios, genera confianza, recibe consultas. Sin depender de Instagram o Facebook.` },
+              { Icon: IconBriefcase, origen: 'caso_portafolio', plan: 'landing', title: '¿Portfolio profesional?', desc: `Tu portafolio online en ${PLANES.landing.plazo} por ${formatCLP(PLANES.landing.precio)}. Destaca tu trabajo, cierra más clientes, deja de mandar PDFs.` },
+            ].map(({ Icon, origen, plan, title, desc }, i) => (
               <div key={i} className="case-card">
                 <div className="icon-block"><Icon /></div>
                 <div className="case-title">{title}</div>
                 <p className="case-desc">{desc}</p>
                 <div className="case-ctas">
-                  <button className="btn btn-primary" onClick={() => navigate('/brief')}>Comienza Ahora</button>
-                  <button className="btn btn-secondary" onClick={() => scrollToSection('pricing')}>Ver Planes</button>
+                  <WhatsAppButton origen={origen} plan={plan} block />
+                  <button className="btn btn-secondary" onClick={() => scrollToSection('pricing')}>Ver precio</button>
                 </div>
               </div>
             ))}
@@ -709,6 +782,7 @@ export default function PagelabLanding() {
                   <div className="project-info">
                     <h3>{p.title}</h3>
                     <p className="project-description">{p.desc}</p>
+                    {p.url && <a className="project-live" href={p.url} target="_blank" rel="noopener noreferrer">Ver sitio en vivo ↗</a>}
                   </div>
                 </div>
               </div>
@@ -718,7 +792,7 @@ export default function PagelabLanding() {
       </section>
 
       {/* ── 8. Pricing ── */}
-      <section className="section pricing-section" id="pricing" data-animate>
+      <section className="section pricing-section" id="pricing" ref={pricingRef} data-animate>
         <div className="container">
           <div className="section-header">
             <div className="section-eyebrow">Precios</div>
@@ -726,57 +800,28 @@ export default function PagelabLanding() {
             <p className="section-sub">Dos opciones. Precio único. Sin letra chica.</p>
           </div>
           <div className="pricing-cards">
-            {/* Landing Page */}
-            <div className="pricing-card">
-              <div className="plan-label">Plan</div>
-              <div className="plan-name">Landing Page</div>
-              <p className="plan-desc">Perfecto para validar tu idea o lanzar una campaña específica</p>
-              <div className="plan-price"><span>$</span>200.000</div>
-              <div className="plan-period">Pago único · Entrega en 3 días</div>
-              <hr className="plan-divider" />
-              <ul className="features-list">
-                <li>1 página completa</li>
-                <li>Hasta 6 secciones</li>
-                <li>Diseño profesional</li>
-                <li>SEO optimizado</li>
-                <li>Dominio incluido 1er año</li>
-                <li>Hosting gratis para siempre</li>
-                <li>Certificado de seguridad incluido</li>
-                <li>1 ronda de cambios</li>
-                <li>Entrega en 3 días</li>
-              </ul>
-              <div className="plan-ctas">
-                <button className="btn btn-primary" onClick={() => navigate('/brief?plan=landing')}>Comienza Ahora</button>
-                <button className="btn btn-secondary" onClick={() => scrollToSection('contacto')}>Consultar primero</button>
-                <button className="plan-link" onClick={() => scrollToSection('contacto')}>Tengo preguntas →</button>
+            {pricingPlans.map((p) => (
+              <div key={p.id} className={`pricing-card${v.featured === p.id ? ' featured' : ''}`}>
+                <div className="plan-label-row">
+                  <div className="plan-label">Plan</div>
+                  {v.featured === p.id && <span className="plan-badge">Recomendado</span>}
+                </div>
+                <div className="plan-name">{p.nombre}</div>
+                <p className="plan-desc">{p.desc}</p>
+                <div className="plan-price"><span>$</span>{p.precio.toLocaleString('es-CL')}</div>
+                {CUOTAS_DISPONIBLES && <div className="plan-cuotas">o paga en cuotas con Mercado Pago</div>}
+                <div className="plan-period">Pago único · Entrega en {p.plazo}</div>
+                <hr className="plan-divider" />
+                <ul className="features-list">
+                  {p.features.map((f) => <li key={f}>{f}</li>)}
+                </ul>
+                <div className="plan-ctas">
+                  <button className="btn btn-primary" onClick={() => goPay(p.id)}>Pagar y empezar hoy</button>
+                  <WhatsAppButton origen="plan" plan={p.id} label="Consultar por WhatsApp" variant="outline" block />
+                </div>
+                <Garantia />
               </div>
-            </div>
-
-            {/* Sitio Web */}
-            <div className="pricing-card">
-              <div className="plan-label">Plan</div>
-              <div className="plan-name">Sitio Web</div>
-              <p className="plan-desc">Para negocios que necesitan explicar su propuesta y convertir visitantes</p>
-              <div className="plan-price"><span>$</span>400.000</div>
-              <div className="plan-period">Pago único · Entrega en 5 días</div>
-              <hr className="plan-divider" />
-              <ul className="features-list">
-                <li>Hasta 5 páginas</li>
-                <li>Diseño profesional</li>
-                <li>SEO optimizado</li>
-                <li>Dominio incluido 1er año</li>
-                <li>Hosting gratis para siempre</li>
-                <li>Certificado de seguridad incluido</li>
-                <li>Formulario de contacto</li>
-                <li>2 rondas de cambios</li>
-                <li>Entrega en 5 días</li>
-              </ul>
-              <div className="plan-ctas">
-                <button className="btn btn-primary" onClick={() => navigate('/brief?plan=sitio')}>Comienza Ahora</button>
-                <button className="btn btn-secondary" onClick={() => scrollToSection('contacto')}>Consultar primero</button>
-                <button className="plan-link" onClick={() => scrollToSection('contacto')}>Tengo preguntas →</button>
-              </div>
-            </div>
+            ))}
           </div>
         </div>
       </section>
@@ -794,10 +839,10 @@ export default function PagelabLanding() {
               <div key={i} className="testimonial">
                 <p className="testimonial-quote">{t.quote}</p>
                 <div className="testimonial-author">
-                  <div className="author-avatar">{t.init}</div>
+                  <div className="author-avatar">{t.foto ? <img src={t.foto} alt={t.name} /> : t.init}</div>
                   <div className="author-info">
                     <strong>{t.name}</strong>
-                    <span>{t.role}</span>
+                    <span>{t.url ? <a href={t.url} target="_blank" rel="noopener noreferrer">{t.role}</a> : t.role}</span>
                   </div>
                 </div>
               </div>
@@ -827,6 +872,10 @@ export default function PagelabLanding() {
               </div>
             ))}
           </div>
+          <div className="faq-cta">
+            <p>¿Otra duda?</p>
+            <WhatsAppButton origen="faq" label="Escríbenos por WhatsApp" />
+          </div>
         </div>
       </section>
 
@@ -839,16 +888,14 @@ export default function PagelabLanding() {
             </div>
             <div className="cta-final-content">
               <h2 className="cta-final-headline">Tu web lista antes de que termine la semana</h2>
-              <p className="cta-final-sub">Más de 47 negocios ya dejaron de depender de Instagram para conseguir clientes. Landing page desde $200.000, sitio web desde $400.000. Entrega en 3 días, hosting incluido para siempre.</p>
+              <p className="cta-final-sub">{SITIOS_ENTREGADOS} negocios ya dejaron de depender de Instagram para conseguir clientes. Landing page desde {formatCLP(PLANES.landing.precio)}, sitio web desde {formatCLP(PLANES.sitio.precio)}. Landing en {PLANES.landing.plazo}, sitio web en {PLANES.sitio.plazo}, hosting incluido para siempre.</p>
               <div className="final-ctas">
-                <button className="btn" style={{ background: 'var(--white)', color: 'var(--noir)', fontWeight: 600 }} onClick={() => navigate('/brief')}>
-                  Comienza Ahora
-                </button>
-                <button className="btn" style={{ background: 'transparent', color: 'var(--white)', border: '2px solid rgba(255,255,255,0.25)' }} onClick={() => scrollToSection('pricing')}>
-                  Ver precios
+                <WhatsAppButton origen="cta_final" mensaje={v.waMensaje} />
+                <button className="btn" style={{ background: 'transparent', color: 'var(--white)', border: '2px solid rgba(255,255,255,0.25)' }} onClick={() => goPay()}>
+                  Pagar y empezar hoy
                 </button>
               </div>
-              <p className="cta-fine-print">Respondemos en menos de 2 horas · Sin compromiso</p>
+              <p className="cta-fine-print">Respuesta promedio: {TIEMPO_RESPUESTA_PROMEDIO} · Sin compromiso</p>
             </div>
           </div>
         </div>
@@ -860,8 +907,8 @@ export default function PagelabLanding() {
           <div className="form-layout">
             {/* Copy izquierdo */}
             <div className="form-copy">
-              <h2 className="form-copy-headline">Escríbenos y empezamos hoy</h2>
-              <p className="form-copy-sub">Cuéntanos qué necesitas. Te respondemos en menos de 2 horas con toda la información para comenzar.</p>
+              <h2 className="form-copy-headline">¿Prefieres escribirnos por email?</h2>
+              <p className="form-copy-sub">Déjanos tus datos y te respondemos con la recomendación de plan y el link de pago.</p>
               <ul className="form-copy-bullets">
                 {[
                   'Te decimos exactamente qué plan necesitas',
@@ -880,7 +927,7 @@ export default function PagelabLanding() {
                 ))}
               </ul>
               <div className="form-trust">
-                <strong>47 negocios</strong> ya confiaron en Pagelab para tener su presencia online. Tiempo promedio de respuesta: <strong>38 minutos</strong>.
+                <strong>{SITIOS_ENTREGADOS} negocios</strong> ya confiaron en Pagelab para tener su presencia online. Tiempo promedio de respuesta: <strong>{TIEMPO_RESPUESTA_PROMEDIO}</strong>
               </div>
             </div>
 
@@ -890,12 +937,13 @@ export default function PagelabLanding() {
                 <div className="form-success">
                   <div className="form-success-icon">✅</div>
                   <h3>¡Solicitud enviada!</h3>
-                  <p>Te respondemos en menos de 2 horas con tu plan personalizado y link de pago.</p>
+                  <p>Te respondemos en menos de 2 horas con la recomendación de plan y el link de pago.</p>
                 </div>
               ) : (
                 <form className="brief-form" onSubmit={handleFormSubmit}>
                   <input type="hidden" name="_subject" value="Nueva consulta — Pagelab" />
-                  <input type="hidden" name="_captcha" value="false" />
+                  <input type="hidden" name="pagina" value={variant} />
+                  <FormExtras />
 
                   <div className="form-group">
                     <label htmlFor="name">Nombre completo *</label>
@@ -918,20 +966,8 @@ export default function PagelabLanding() {
                     </div>
                   </div>
                   <div className="form-group">
-                    <label htmlFor="business">¿Qué hace tu negocio/proyecto? *</label>
-                    <textarea id="business" name="business" rows="3" required placeholder="Cuéntanos brevemente..." />
-                  </div>
-                  <div className="form-group">
-                    <label>¿Tienes contenido listo? (textos, fotos, logo) *</label>
-                    <div className="radio-group">
-                      <label><input type="radio" name="content" value="Sí, todo listo" required /> Sí, todo listo</label>
-                      <label><input type="radio" name="content" value="Tengo algo, falta completar" /> Tengo algo, falta completar</label>
-                      <label><input type="radio" name="content" value="No tengo nada aún" /> No tengo nada aún</label>
-                    </div>
-                  </div>
-                  <div className="form-group">
-                    <label htmlFor="comments">Comentarios adicionales (opcional)</label>
-                    <textarea id="comments" name="comments" rows="2" placeholder="Algún detalle extra..." />
+                    <label htmlFor="message">Mensaje (opcional)</label>
+                    <textarea id="message" name="message" rows="3" placeholder="Cuéntanos brevemente qué necesitas..." />
                   </div>
                   <button type="submit" className="btn btn-primary form-submit">Enviar Solicitud</button>
                   <p className="form-note">Te respondemos en menos de 2 horas</p>
@@ -949,7 +985,7 @@ export default function PagelabLanding() {
             <div className="footer-brand">
               <div className="footer-logo" itemProp="name">Pagelab.</div>
               <p className="footer-desc" itemProp="description">
-                Diseño y desarrollo de páginas web profesionales en Chile. Landing pages, sitios corporativos y portafolios online. Entrega garantizada en 3 días hábiles.
+                Diseño y desarrollo de páginas web profesionales en Chile. Landing pages, sitios corporativos y portafolios online. Landing en {PLANES.landing.plazo}, sitio web en {PLANES.sitio.plazo}.
               </p>
               <div className="footer-contact">
                 <div>Santiago, Chile</div>
@@ -970,7 +1006,7 @@ export default function PagelabLanding() {
                 <li><a onClick={() => scrollToSection('proceso')}>Cómo funciona</a></li>
                 <li><a onClick={() => scrollToSection('faq')}>Preguntas frecuentes</a></li>
                 <li><a onClick={() => scrollToSection('contacto')}>Contacto</a></li>
-                <li><a href={`https://wa.me/56958465519`} onClick={() => { window.fbq?.('track', 'Contact'); window.gtag?.('event', 'contact', { method: 'whatsapp' }); }} target="_blank" rel="noopener noreferrer">WhatsApp</a></li>
+                <li><a href={buildWhatsAppLink('footer', null, v.waMensaje)} onClick={() => trackWhatsApp('footer')} target="_blank" rel="noopener noreferrer">WhatsApp</a></li>
               </ul>
             </div>
           </div>
@@ -985,12 +1021,16 @@ export default function PagelabLanding() {
         </div>
       </footer>
 
-      {/* ── WhatsApp ── */}
-      <a href="https://wa.me/56958465519" onClick={() => { window.fbq?.('track', 'Contact'); window.gtag?.('event', 'contact', { method: 'whatsapp' }); }} target="_blank" rel="noopener noreferrer" className="whatsapp-btn" aria-label="Contactar por WhatsApp">
-        <svg viewBox="0 0 24 24">
-          <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
-        </svg>
+      {/* ── WhatsApp flotante (en móvil se reemplaza por la barra al pasar el hero) ── */}
+      <a href={buildWhatsAppLink('flotante')} onClick={() => trackWhatsApp('flotante')} target="_blank" rel="noopener noreferrer" className={`whatsapp-btn${pastHero ? ' hidden-mobile' : ''}`} aria-label="Contactar por WhatsApp">
+        <WhatsAppIcon size={28} />
       </a>
+
+      {/* ── Barra fija inferior (móvil) ── */}
+      <div className={`mobile-bar${pastHero ? ' visible' : ''}`} aria-hidden={!pastHero}>
+        <WhatsAppButton origen="barra_movil" mensaje={v.waMensaje} label="WhatsApp" />
+        <button className="btn btn-secondary" onClick={() => scrollToSection('pricing')}>Ver precios</button>
+      </div>
     </div>
   );
 }

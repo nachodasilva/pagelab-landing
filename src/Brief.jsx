@@ -1,10 +1,11 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { PLANES, FORMSUBMIT_POST_URL, formatCLP } from './config';
+import { readCheckout } from './lib/checkout';
+import { usePageMeta } from './lib/meta';
+import { FormExtras } from './components/FormExtras';
 
-const FORM_EMAIL = 'silvapignacio@gmail.com';
-// Reemplaza con tu link de pago cuando lo tengas configurado
-const PAYMENT_URL_LANDING = 'https://mpago.li/2YjR7CK';
-const PAYMENT_URL_SITIO   = 'https://mpago.li/2gB57xw';
+export const BRIEF_SENT_KEY = 'pl_brief_sent';
 
 const RUBROS = [
   'Gastronomía / Restaurant',
@@ -25,19 +26,23 @@ const RUBROS = [
 export default function Brief() {
   const navigate = useNavigate();
   const location = useLocation();
+  usePageMeta('Brief del proyecto | Pagelab', 'Cuéntanos sobre tu proyecto para empezar a trabajar en tu sitio.');
 
-  const [plan, setPlan] = useState('Landing Page');
+  // Datos del checkout corto: si existen, el plan ya está pagado y no se elige aquí
+  const [checkout] = useState(readCheckout);
+  const planFromCheckout = PLANES[checkout.plan] ? checkout.plan : null;
+
+  const [plan, setPlan] = useState(planFromCheckout ? PLANES[planFromCheckout].nombre : 'Landing Page');
   const [tieneDominio, setTieneDominio] = useState(null);
   const [tieneContenido, setTieneContenido] = useState(null);
   const [tieneColores, setTieneColores] = useState(null);
   const [colores, setColores] = useState(['#121212', '#4A90E2', '#FFFFFF']);
   const [errors, setErrors] = useState({});
-  const [submitted, setSubmitted] = useState(false);
   const formRef = useRef(null);
 
   useEffect(() => {
     const params = new URLSearchParams(location.search);
-    if (params.get('plan') === 'sitio') setPlan('Sitio Web');
+    if (!planFromCheckout && params.get('plan') === 'sitio') setPlan('Sitio Web');
     window.scrollTo(0, 0);
   }, []);
 
@@ -70,10 +75,13 @@ export default function Brief() {
     return Object.keys(errs).length === 0;
   };
 
+  const planKey = plan === 'Sitio Web' ? 'sitio' : 'landing';
+
+  // El formulario se envía con POST normal (FormSubmit no acepta archivos por AJAX)
+  // y FormSubmit redirige a /brief-recibido, que dispara brief_submitted.
   const handleSubmit = (e) => {
     if (!validate()) { e.preventDefault(); return; }
-    // Guardamos el plan para que la página de gracias sepa qué monto trackear
-    sessionStorage.setItem('pl_plan', plan === 'Sitio Web' ? 'sitio' : 'landing');
+    try { sessionStorage.setItem(BRIEF_SENT_KEY, planKey); } catch { /* sin almacenamiento */ }
   };
 
   const setColor = (i, val) => {
@@ -82,18 +90,7 @@ export default function Brief() {
     setColores(next);
   };
 
-  const paymentUrl = plan === 'Sitio Web' ? PAYMENT_URL_SITIO : PAYMENT_URL_LANDING;
-
-  if (submitted) {
-    return (
-      <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', fontFamily: 'Geist, sans-serif', padding: '2rem', textAlign: 'center' }}>
-        <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>✓</div>
-        <h2 style={{ fontSize: '1.5rem', fontWeight: 700, marginBottom: '0.5rem' }}>¡Brief recibido!</h2>
-        <p style={{ color: '#565656', marginBottom: '2rem' }}>Te contactaremos en menos de 2 horas.</p>
-        <button onClick={() => navigate('/')} style={{ background: '#121212', color: '#fff', border: 'none', borderRadius: 8, padding: '0.75rem 1.5rem', cursor: 'pointer', fontWeight: 600 }}>Volver al inicio</button>
-      </div>
-    );
-  }
+  const nextUrl = `${window.location.origin}/#/brief-recibido`;
 
   return (
     <div style={{ fontFamily: 'Geist, -apple-system, BlinkMacSystemFont, sans-serif', color: '#121212', minHeight: '100vh', background: '#F8F8F8' }}>
@@ -116,7 +113,7 @@ export default function Brief() {
         .brief-title { font-size: clamp(1.75rem, 4vw, 2.5rem); font-weight: 700; letter-spacing: -0.04em; line-height: 1.15; margin-bottom: 0.75rem; }
         .brief-subtitle { font-size: 1rem; color: var(--iron); max-width: 520px; margin: 0 auto; line-height: 1.6; }
 
-        .brief-body { max-width: 680px; margin: 0 auto; padding: 2rem 1.5rem 5rem; display: flex; flex-direction: column; gap: 1.5rem; }
+        .brief-body { max-width: 680px; margin: 0 auto; padding: 2rem 1.25rem 7rem; display: flex; flex-direction: column; gap: 1.5rem; }
 
         .brief-card { background: var(--white); border: 1px solid var(--cloud); border-radius: 16px; padding: 1.75rem; }
         .brief-card-title { font-size: 1rem; font-weight: 700; margin-bottom: 0.25rem; }
@@ -169,7 +166,7 @@ export default function Brief() {
         .upload-files { margin-top: 0.75rem; display: flex; flex-wrap: wrap; gap: 0.5rem; }
         .upload-chip { font-size: 0.75rem; background: #F0F0F0; border-radius: 6px; padding: 0.25rem 0.625rem; color: var(--iron); }
 
-        .brief-footer { position: fixed; bottom: 0; left: 0; right: 0; background: var(--white); border-top: 1px solid var(--cloud); padding: 1rem 1.5rem; z-index: 100; }
+        .brief-footer { position: fixed; bottom: 0; left: 0; right: 0; background: var(--white); border-top: 1px solid var(--cloud); padding: 1rem 1.5rem calc(1rem + env(safe-area-inset-bottom)); z-index: 100; }
         .brief-footer-inner { max-width: 680px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
         .brief-footer-plan { font-size: 0.8125rem; color: var(--fog); }
         .brief-footer-plan strong { color: var(--noir); }
@@ -199,39 +196,48 @@ export default function Brief() {
 
       <form
         ref={formRef}
-        action={`https://formsubmit.co/${FORM_EMAIL}`}
+        action={FORMSUBMIT_POST_URL}
         method="POST"
         encType="multipart/form-data"
         onSubmit={handleSubmit}
       >
         {/* Campos ocultos formsubmit */}
-        <input type="hidden" name="_next" value={paymentUrl} />
+        <input type="hidden" name="_next" value={nextUrl} />
         <input type="hidden" name="_subject" value={`Nuevo Brief Pagelab — ${plan}`} />
-        <input type="hidden" name="_captcha" value="false" />
         <input type="hidden" name="plan" value={plan} />
         <input type="hidden" name="colores_marca" value={tieneColores ? colores.join(', ') : 'Sin colores definidos'} />
+        <FormExtras />
 
         <div className="brief-body">
 
-          {/* 1. Tipo de servicio */}
+          {/* 1. Tipo de servicio: texto si viene del checkout, selector si no */}
           <div className="brief-card">
-            <div className="brief-card-title">¿Qué necesitas?</div>
-            <div className="brief-card-sub">Selecciona el plan que más se ajusta a tu proyecto.</div>
-            <div className="plan-selector">
-              {[
-                { label: 'Landing Page', price: '$200.000', sub: 'Entrega en 3 días' },
-                { label: 'Sitio Web', price: '$400.000', sub: 'Entrega en 5 días' },
-              ].map((p) => (
-                <div
-                  key={p.label}
-                  className={`plan-option${plan === p.label ? ' active' : ''}`}
-                  onClick={() => setPlan(p.label)}
-                >
-                  <div className="plan-option-name">{p.label}</div>
-                  <div className="plan-option-price">{p.price} · {p.sub}</div>
+            {planFromCheckout ? (
+              <>
+                <div className="brief-card-title">Plan contratado</div>
+                <div className="plan-option active" style={{ cursor: 'default', marginTop: '0.75rem' }}>
+                  <div className="plan-option-name">{PLANES[planFromCheckout].nombre}</div>
+                  <div className="plan-option-price">Entrega en {PLANES[planFromCheckout].plazo}</div>
                 </div>
-              ))}
-            </div>
+              </>
+            ) : (
+              <>
+                <div className="brief-card-title">¿Qué necesitas?</div>
+                <div className="brief-card-sub">Selecciona el plan que más se ajusta a tu proyecto.</div>
+                <div className="plan-selector">
+                  {Object.values(PLANES).map((p) => (
+                    <div
+                      key={p.id}
+                      className={`plan-option${plan === p.nombre ? ' active' : ''}`}
+                      onClick={() => setPlan(p.nombre)}
+                    >
+                      <div className="plan-option-name">{p.nombre}</div>
+                      <div className="plan-option-price">{formatCLP(p.precio)} · Entrega en {p.plazo}</div>
+                    </div>
+                  ))}
+                </div>
+              </>
+            )}
           </div>
 
           {/* 2. Datos personales */}
@@ -241,18 +247,18 @@ export default function Brief() {
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
               <div className="field">
                 <label>Nombre completo <span>*</span></label>
-                <input name="nombre" type="text" placeholder="Juan Pérez" className={errors.nombre ? 'err' : ''} onChange={() => setErrors(e => ({ ...e, nombre: undefined }))} />
+                <input name="nombre" type="text" defaultValue={checkout.nombre || ''} placeholder="Juan Pérez" className={errors.nombre ? 'err' : ''} onChange={() => setErrors(e => ({ ...e, nombre: undefined }))} />
                 {errors.nombre && <span className="field-error">{errors.nombre}</span>}
               </div>
               <div className="fields-row">
                 <div className="field">
                   <label>Email <span>*</span></label>
-                  <input name="email" type="email" placeholder="juan@empresa.cl" className={errors.email ? 'err' : ''} onChange={() => setErrors(e => ({ ...e, email: undefined }))} />
+                  <input name="email" type="email" defaultValue={checkout.email || ''} placeholder="juan@empresa.cl" className={errors.email ? 'err' : ''} onChange={() => setErrors(e => ({ ...e, email: undefined }))} />
                   {errors.email && <span className="field-error">{errors.email}</span>}
                 </div>
                 <div className="field">
                   <label>Teléfono <span>*</span></label>
-                  <input name="telefono" type="tel" placeholder="+56 9 1234 5678" className={errors.telefono ? 'err' : ''} onChange={() => setErrors(e => ({ ...e, telefono: undefined }))} />
+                  <input name="telefono" type="tel" defaultValue={checkout.telefono || ''} placeholder="+56 9 1234 5678" className={errors.telefono ? 'err' : ''} onChange={() => setErrors(e => ({ ...e, telefono: undefined }))} />
                   {errors.telefono && <span className="field-error">{errors.telefono}</span>}
                 </div>
               </div>
@@ -267,7 +273,7 @@ export default function Brief() {
               <div className="fields-row">
                 <div className="field">
                   <label>Nombre de la empresa <span>*</span></label>
-                  <input name="empresa" type="text" placeholder="Mi Empresa SpA" className={errors.empresa ? 'err' : ''} onChange={() => setErrors(e => ({ ...e, empresa: undefined }))} />
+                  <input name="empresa" type="text" defaultValue={checkout.empresa || ''} placeholder="Mi Empresa SpA" className={errors.empresa ? 'err' : ''} onChange={() => setErrors(e => ({ ...e, empresa: undefined }))} />
                   {errors.empresa && <span className="field-error">{errors.empresa}</span>}
                 </div>
                 <div className="field">
@@ -487,15 +493,13 @@ export default function Brief() {
 
         </div>
 
-        {/* Footer sticky con botón de pago */}
+        {/* Footer sticky con botón de envío */}
         <div className="brief-footer">
           <div className="brief-footer-inner">
             <div className="brief-footer-plan">
-              Plan seleccionado: <strong>{plan}</strong>
-              <span style={{ marginLeft: '0.5rem', color: '#848484' }}>·</span>
-              <strong style={{ marginLeft: '0.5rem' }}>{plan === 'Sitio Web' ? '$400.000' : '$200.000'}</strong>
+              Plan: <strong>{plan}</strong>
             </div>
-            <button type="submit" className="btn-submit">Ir al pago →</button>
+            <button type="submit" className="btn-submit">Enviar brief →</button>
           </div>
         </div>
       </form>

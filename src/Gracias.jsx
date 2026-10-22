@@ -1,64 +1,48 @@
 import { useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { PLANES, CONTACT_EMAIL, WHATSAPP_DISPLAY, formatCLP } from './config';
+import { track } from './lib/track';
+import { buildWhatsAppLink, trackWhatsApp } from './lib/whatsapp';
+import { usePageMeta } from './lib/meta';
+import { readCheckout } from './lib/checkout';
 
-// ─── IDs de tracking — reemplaza con los tuyos ───────────────────────────────
-const GA_ADS_CONVERSION = null; // Google Ads: 'AW-XXXXXXXXX/YYYYYYY' (o null si no tienes)
-// ─────────────────────────────────────────────────────────────────────────────
+const PURCHASES_KEY = 'pl_purchases';
 
-const PLANES = {
-  landing: { nombre: 'Landing Page', monto: 200000, entrega: '3 días hábiles' },
-  sitio:   { nombre: 'Sitio Web',    monto: 400000, entrega: '5 días hábiles' },
+const readJSON = (key, fallback) => {
+  try { return JSON.parse(localStorage.getItem(key)) ?? fallback; } catch { return fallback; }
 };
+
+// Mercado Pago agrega los parámetros a la URL de retorno. Según cómo esté
+// configurada, pueden quedar antes del # o dentro del hash: leemos ambos.
+function mercadoPagoParams(routerSearch) {
+  const params = new URLSearchParams(window.location.search);
+  new URLSearchParams(routerSearch).forEach((v, k) => params.set(k, v));
+  const status = params.get('status') || params.get('collection_status');
+  // collection_id es el mismo ID de pago en la respuesta de Mercado Pago
+  const paymentId = params.get('payment_id') || params.get('collection_id');
+  return { approved: status === 'approved' && !!paymentId && paymentId !== 'null', paymentId };
+}
 
 export default function Gracias() {
   const navigate = useNavigate();
+  const location = useLocation();
+  usePageMeta('Pago recibido | Pagelab', 'Gracias por tu compra en Pagelab.');
 
-  // Leemos el plan desde sessionStorage (guardado en Brief antes del pago)
-  // y lo limpiamos para que no persista en visitas futuras
-  const planKey = sessionStorage.getItem('pl_plan') || 'landing';
-  sessionStorage.removeItem('pl_plan');
-  const plan = PLANES[planKey] ?? PLANES.landing;
+  // Plan guardado en el checkout corto (/pagar)
+  const checkout = readCheckout();
+  const planKey = PLANES[checkout.plan] ? checkout.plan : 'landing';
+  const plan = PLANES[planKey];
 
   useEffect(() => {
     window.scrollTo(0, 0);
 
-    const txId = `PL-${Date.now()}`;
-
-    // ── Google Analytics 4 — evento purchase ─────────────────────────────────
-    if (typeof window.gtag === 'function') {
-      window.gtag('event', 'purchase', {
-        transaction_id: txId,
-        value:          plan.monto,
-        currency:       'CLP',
-        items: [{
-          item_id:   planKey,
-          item_name: plan.nombre,
-          price:     plan.monto,
-          quantity:  1,
-        }],
-      });
-
-      // ── Google Ads — conversión de compra (opcional) ──────────────────────
-      if (GA_ADS_CONVERSION) {
-        window.gtag('event', 'conversion', {
-          send_to:  GA_ADS_CONVERSION,
-          value:    plan.monto,
-          currency: 'CLP',
-          transaction_id: txId,
-        });
-      }
-    }
-
-    // ── Meta Pixel — evento Purchase ─────────────────────────────────────────
-    if (typeof window.fbq === 'function') {
-      window.fbq('track', 'Purchase', {
-        value:    plan.monto,
-        currency: 'CLP',
-        content_name: plan.nombre,
-        content_ids:  [planKey],
-        content_type: 'product',
-      });
-    }
+    // Purchase solo con pago aprobado y una sola vez por payment_id.
+    const { approved, paymentId } = mercadoPagoParams(location.search);
+    if (!approved) return;
+    const registered = readJSON(PURCHASES_KEY, []);
+    if (registered.includes(paymentId)) return;
+    try { localStorage.setItem(PURCHASES_KEY, JSON.stringify([...registered, paymentId])); } catch { /* sin almacenamiento */ }
+    track('purchase', { plan: planKey, transaction_id: paymentId });
   }, []);
 
   return (
@@ -98,6 +82,10 @@ export default function Gracias() {
 
         .g-btn { background: #121212; color: #fff; border: none; border-radius: 10px; padding: 0.875rem 2rem; font-size: 1rem; font-weight: 700; cursor: pointer; font-family: inherit; transition: background 0.15s, transform 0.1s; text-decoration: none; display: inline-block; }
         .g-btn:hover { background: #2B2B2B; transform: translateY(-1px); }
+        .g-btn-lg { width: 100%; max-width: 400px; padding: 1.125rem 2rem; font-size: 1.0625rem; }
+        .g-next { display: flex; flex-direction: column; align-items: center; gap: 0.625rem; width: 100%; }
+        .g-next-note { font-size: 0.8125rem; color: #848484; }
+        .g-link { background: none; border: none; font-family: inherit; font-size: 0.875rem; color: #848484; text-decoration: underline; cursor: pointer; }
       `}</style>
 
       <header className="g-header">
@@ -118,8 +106,14 @@ export default function Gracias() {
           <h1 className="g-headline">¡Pago confirmado!</h1>
         </div>
         <p className="g-sub">
-          Tu pago fue procesado con éxito. Ya estamos revisando tu brief y comenzaremos a trabajar en tu sitio web de inmediato.
+          Completa tu brief (5 minutos) para que empecemos hoy.
         </p>
+
+        {/* Siguiente paso */}
+        <div className="g-next">
+          <button className="g-btn g-btn-lg" onClick={() => navigate('/brief')}>Completar mi brief →</button>
+          <div className="g-next-note">También te enviamos el link por email/WhatsApp.</div>
+        </div>
 
         {/* Badge del plan */}
         <div className="g-plan-badge">
@@ -128,7 +122,7 @@ export default function Gracias() {
             <div className="g-plan-badge-name">{plan.nombre}</div>
           </div>
           <div className="g-plan-badge-price">
-            ${plan.monto.toLocaleString('es-CL')} <span>CLP</span>
+            {formatCLP(plan.precio)} <span>CLP</span>
           </div>
         </div>
 
@@ -139,31 +133,23 @@ export default function Gracias() {
           <div className="g-step">
             <div className="g-step-num">1</div>
             <div>
-              <div className="g-step-title">Revisa tu email</div>
-              <div className="g-step-desc">Recibirás un comprobante de pago de Mercado Pago en los próximos minutos.</div>
+              <div className="g-step-title">Completa tu brief</div>
+              <div className="g-step-desc">Nos cuentas sobre tu negocio y subes tu logo y fotos. Toma unos 5 minutos.</div>
             </div>
           </div>
 
           <div className="g-step">
             <div className="g-step-num">2</div>
             <div>
-              <div className="g-step-title">Te contactamos en menos de 2 horas</div>
-              <div className="g-step-desc">Nuestro equipo revisará tu brief y te escribirá para confirmar que tenemos todo lo necesario.</div>
+              <div className="g-step-title">Comenzamos el mismo día</div>
+              <div className="g-step-desc">Con tu brief listo, iniciamos el diseño y desarrollo de tu sitio de inmediato.</div>
             </div>
           </div>
 
           <div className="g-step">
             <div className="g-step-num">3</div>
             <div>
-              <div className="g-step-title">Comenzamos a trabajar</div>
-              <div className="g-step-desc">Con el brief aprobado, iniciamos el diseño y desarrollo de tu sitio de inmediato.</div>
-            </div>
-          </div>
-
-          <div className="g-step">
-            <div className="g-step-num">4</div>
-            <div>
-              <div className="g-step-title">Preview y ajustes en {plan.entrega}</div>
+              <div className="g-step-title">Preview y ajustes en {plan.plazo}</div>
               <div className="g-step-desc">Te enviamos un link de vista previa para que revises y solicites los cambios incluidos. Solo publicamos cuando estés conforme.</div>
             </div>
           </div>
@@ -172,12 +158,12 @@ export default function Gracias() {
         {/* Contacto */}
         <div className="g-contact">
           ¿Tienes alguna duda? Escríbenos a{' '}
-          <a href="mailto:hola@pagelab.cl">hola@pagelab.cl</a>
+          <a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a>
           {' '}o por WhatsApp al{' '}
-          <a href="https://wa.me/56958465519" onClick={() => { window.fbq?.('track', 'Contact'); window.gtag?.('event', 'contact', { method: 'whatsapp' }); }} target="_blank" rel="noopener noreferrer">+56 9 5846 5519</a>
+          <a href={buildWhatsAppLink('gracias', planKey, `Hola, ya pagué el plan ${plan.nombre} y tengo una duda.`)} onClick={() => trackWhatsApp('gracias', planKey)} target="_blank" rel="noopener noreferrer">{WHATSAPP_DISPLAY}</a>
         </div>
 
-        <button className="g-btn" onClick={() => navigate('/')}>Volver al inicio</button>
+        <button className="g-link" onClick={() => navigate('/')}>Volver al inicio</button>
 
       </div>
     </div>
