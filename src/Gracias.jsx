@@ -174,7 +174,7 @@ export default function Gracias() {
           ¿Tienes alguna duda? Escríbenos a{' '}
           <a href="mailto:hola@pagelab.cl">hola@pagelab.cl</a>
           {' '}o por WhatsApp al{' '}
-          <a href="https://wa.me/56958465519" target="_blank" rel="noopener noreferrer">+56 9 5846 5519</a>
+          <a href="https://wa.me/56958465519" onClick={() => window.fbq?.('track', 'Contact')} target="_blank" rel="noopener noreferrer">+56 9 5846 5519</a>
         </div>
 
         <button className="g-btn" onClick={() => navigate('/')}>Volver al inicio</button>
