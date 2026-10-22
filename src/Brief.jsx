@@ -105,7 +105,7 @@ export default function Brief() {
           --white: #FFFFFF; --accent: #4A90E2; --bg: #F8F8F8;
           --red: #D32F2F;
         }
-        body { -webkit-font-smoothing: antialiased; }
+        body { -webkit-font-smoothing: antialiased; letter-spacing: -0.01em; }
         .brief-header { background: var(--white); border-bottom: 1px solid var(--cloud); padding: 0 2rem; height: 60px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; }
         .brief-logo { font-size: 1.25rem; font-weight: 700; letter-spacing: -0.03em; text-transform: lowercase; color: var(--noir); cursor: pointer; text-decoration: none; }
         .brief-back { font-size: 0.875rem; color: var(--fog); cursor: pointer; background: none; border: none; padding: 0.25rem 0.5rem; border-radius: 6px; transition: color 0.15s; }
@@ -113,7 +113,7 @@ export default function Brief() {
 
         .brief-hero { background: var(--white); border-bottom: 1px solid var(--cloud); padding: 3rem 2rem 2.5rem; text-align: center; }
         .brief-eyebrow { font-size: 0.6875rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.12em; color: var(--fog); margin-bottom: 0.75rem; }
-        .brief-title { font-size: clamp(1.75rem, 4vw, 2.5rem); font-weight: 700; letter-spacing: -0.03em; line-height: 1.15; margin-bottom: 0.75rem; }
+        .brief-title { font-size: clamp(1.75rem, 4vw, 2.5rem); font-weight: 700; letter-spacing: -0.04em; line-height: 1.15; margin-bottom: 0.75rem; }
         .brief-subtitle { font-size: 1rem; color: var(--iron); max-width: 520px; margin: 0 auto; line-height: 1.6; }
 
         .brief-body { max-width: 680px; margin: 0 auto; padding: 2rem 1.5rem 5rem; display: flex; flex-direction: column; gap: 1.5rem; }

@@ -65,7 +65,7 @@ export default function Gracias() {
     <div style={{ fontFamily: 'Geist, -apple-system, BlinkMacSystemFont, sans-serif', color: '#121212', minHeight: '100vh', background: '#F8F8F8' }}>
       <style>{`
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-        body { -webkit-font-smoothing: antialiased; }
+        body { -webkit-font-smoothing: antialiased; letter-spacing: -0.01em; }
 
         .g-header { background: #fff; border-bottom: 1px solid #E0E0E0; padding: 0 2rem; height: 60px; display: flex; align-items: center; }
         .g-logo { font-size: 1.25rem; font-weight: 700; letter-spacing: -0.03em; text-transform: lowercase; color: #121212; cursor: pointer; text-decoration: none; }
@@ -75,7 +75,7 @@ export default function Gracias() {
         .g-check { width: 72px; height: 72px; border-radius: 50%; background: #121212; display: flex; align-items: center; justify-content: center; }
         .g-check svg { width: 36px; height: 36px; }
 
-        .g-headline { font-size: clamp(1.75rem, 5vw, 2.25rem); font-weight: 700; letter-spacing: -0.03em; line-height: 1.15; }
+        .g-headline { font-size: clamp(1.75rem, 5vw, 2.25rem); font-weight: 700; letter-spacing: -0.04em; line-height: 1.15; }
         .g-sub { font-size: 1rem; color: #565656; line-height: 1.7; max-width: 460px; }
 
         .g-plan-badge { background: #fff; border: 1px solid #E0E0E0; border-radius: 12px; padding: 1rem 1.5rem; display: flex; align-items: center; justify-content: space-between; gap: 2rem; width: 100%; max-width: 400px; }

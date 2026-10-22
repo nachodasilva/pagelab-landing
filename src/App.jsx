@@ -169,6 +169,7 @@ export default function PagelabLanding() {
           color: var(--noir);
           line-height: 1.6;
           -webkit-font-smoothing: antialiased;
+          letter-spacing: -0.01em;
           background: var(--white);
         }
 
@@ -215,7 +216,7 @@ export default function PagelabLanding() {
         .hero-headline {
           font-size: clamp(2rem, 3.5vw, 3rem);
           font-weight: 700; line-height: 1.1;
-          letter-spacing: -0.03em; margin-bottom: 1.25rem; color: var(--noir);
+          letter-spacing: -0.04em; margin-bottom: 1.25rem; color: var(--noir);
         }
         .hero-sub { font-size: 1.0625rem; line-height: 1.75; color: var(--iron); margin-bottom: 1.75rem; }
         .hero-sub strong { color: var(--noir); font-weight: 600; }
@@ -459,7 +460,7 @@ export default function PagelabLanding() {
         .section-gray { background: var(--bg-mid); }
         .section-header { text-align: center; margin-bottom: 3rem; }
         .section-eyebrow { font-size: 0.6875rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.12em; color: var(--fog); margin-bottom: 0.625rem; }
-        .section-headline { font-size: clamp(1.625rem, 2.75vw, 2.25rem); font-weight: 700; line-height: 1.2; letter-spacing: -0.02em; margin-bottom: 0.75rem; color: var(--noir); }
+        .section-headline { font-size: clamp(1.625rem, 2.75vw, 2.25rem); font-weight: 700; line-height: 1.2; letter-spacing: -0.03em; margin-bottom: 0.75rem; color: var(--noir); }
         .section-dark .section-headline { color: var(--white); }
         .section-sub { font-size: 1rem; color: var(--iron); max-width: 560px; margin: 0 auto; }
         .section-dark .section-sub { color: var(--silver); }
@@ -576,7 +577,7 @@ export default function PagelabLanding() {
         .cta-final-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 4rem; align-items: center; }
         .cta-final-image img { width: 100%; border-radius: 12px; opacity: 0.88; display: block; }
         .cta-final-content {}
-        .cta-final-headline { font-size: clamp(1.75rem, 2.75vw, 2.5rem); font-weight: 700; line-height: 1.15; letter-spacing: -0.02em; color: var(--white); margin-bottom: 1rem; }
+        .cta-final-headline { font-size: clamp(1.75rem, 2.75vw, 2.5rem); font-weight: 700; line-height: 1.15; letter-spacing: -0.03em; color: var(--white); margin-bottom: 1rem; }
         .cta-final-sub { font-size: 1rem; line-height: 1.75; color: var(--silver); margin-bottom: 1.75rem; }
         .final-ctas { display: flex; gap: 0.75rem; align-items: center; flex-wrap: wrap; }
         .cta-fine-print { font-size: 0.8125rem; color: rgba(255,255,255,0.4); margin-top: 1.25rem; }
@@ -585,7 +586,7 @@ export default function PagelabLanding() {
         .form-section { background: var(--bg-light); }
         .form-layout { display: grid; grid-template-columns: 1fr 1.5fr; gap: 5rem; align-items: start; max-width: 980px; margin: 0 auto; }
         .form-copy {}
-        .form-copy-headline { font-size: clamp(1.5rem, 2.5vw, 2rem); font-weight: 700; letter-spacing: -0.02em; line-height: 1.2; color: var(--noir); margin-bottom: 0.75rem; }
+        .form-copy-headline { font-size: clamp(1.5rem, 2.5vw, 2rem); font-weight: 700; letter-spacing: -0.03em; line-height: 1.2; color: var(--noir); margin-bottom: 0.75rem; }
         .form-copy-sub { font-size: 0.9375rem; color: var(--iron); margin-bottom: 2rem; line-height: 1.6; }
         .form-copy-bullets { list-style: none; margin-bottom: 2rem; }
         .form-copy-bullets li { display: flex; align-items: flex-start; gap: 0.75rem; padding: 0.5rem 0; font-size: 0.9375rem; color: var(--iron); line-height: 1.5; }
