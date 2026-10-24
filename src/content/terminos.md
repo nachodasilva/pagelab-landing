@@ -88,7 +88,7 @@ Pagelab envía al Cliente un enlace de preview del sitio. El Cliente revisa y re
 
 **Qué cuenta como cambio incluido:** ajustes de textos, reemplazo de fotos, colores, tipografías, orden de secciones y datos de contacto, dentro de la estructura y el plan contratado.
 
-**Qué se cotiza aparte:** secciones o páginas nuevas, funcionalidades nuevas (ver sección 2), un cambio completo de diseño o enfoque respecto de lo indicado en el brief, y rondas adicionales a las del plan. Cada ronda adicional tiene un valor de 39.990 IVA incluido. El Cliente puede pasar de Landing Page a Sitio Web pagando la diferencia de precio.
+**Qué se cotiza aparte:** secciones o páginas nuevas, funcionalidades nuevas (ver sección 2), un cambio completo de diseño o enfoque respecto de lo indicado en el brief, y rondas adicionales a las del plan. Cada ronda adicional tiene un valor de $39.990 IVA incluido. El Cliente puede pasar de Landing Page a Sitio Web pagando la diferencia de precio.
 
 **Aprobación.** El sitio se considera aprobado solo cuando el Cliente lo confirma por escrito (WhatsApp o email). El silencio del Cliente no equivale a aprobación, pero sí cuenta para el cierre por inactividad de la sección 7. Una vez aprobado, Pagelab inscribe el dominio (si corresponde) y publica el sitio.
 
@@ -173,7 +173,7 @@ En cualquier caso, la responsabilidad total de Pagelab frente al Cliente por un 
 
 ## 14. Derecho de retracto
 
-El servicio es personalizado y Pagelab comienza a prestarlo, con el consentimiento expreso del Cliente, desde que este realiza el pago inicial. Por eso, una vez iniciada la prestación, no procede el derecho de retracto. Las devoluciones se rigen exclusivamente por la sección 8. [CONFIRMAR con abogado]
+El servicio es personalizado y Pagelab comienza a prestarlo, con el consentimiento expreso del Cliente, desde que este realiza el pago inicial. Por eso, una vez iniciada la prestación, no procede el derecho de retracto. Las devoluciones se rigen exclusivamente por la sección 8.
 
 ## 15. Datos personales
 
