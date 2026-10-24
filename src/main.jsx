@@ -6,6 +6,7 @@ import Brief from './Brief.jsx'
 import BriefRecibido from './BriefRecibido.jsx'
 import Gracias from './Gracias.jsx'
 import Pagar from './Pagar.jsx'
+import Terminos from './Terminos.jsx'
 import { captureAttribution } from './lib/attribution'
 
 // Antes del primer render, para que los links de WhatsApp ya lleven la ref.
@@ -30,6 +31,7 @@ ReactDOM.createRoot(document.getElementById('root')).render(
         <Route path="/gracias" element={<Gracias />} />
         <Route path="/brief" element={<Brief />} />
         <Route path="/brief-recibido" element={<BriefRecibido />} />
+        <Route path="/terminos" element={<Terminos />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </HashRouter>

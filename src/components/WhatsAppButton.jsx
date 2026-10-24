@@ -7,7 +7,7 @@ export const WhatsAppIcon = ({ size = 18 }) => (
   </svg>
 );
 
-// variant: "solid" (verde, CTA principal) | "outline" (secundario)
+// variant: "solid" (negro, CTA principal) | "outline" (secundario) | "light" (sobre fondo oscuro)
 export default function WhatsAppButton({
   origen, plan, mensaje, label = 'Hablar por WhatsApp',
   variant = 'solid', compact = false, block = false, className = '',

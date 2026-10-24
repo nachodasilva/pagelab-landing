@@ -1,11 +1,11 @@
 import { useState, useRef, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { PLANES, FORMSUBMIT_AJAX_URL, CUOTAS_DISPONIBLES, TERMS_URL, formatCLP } from './config';
+import { PLANES, FORMSUBMIT_AJAX_URL, RAZON_SOCIAL, formatCLP, textoCuotas } from './config';
 import { track } from './lib/track';
 import { usePageMeta } from './lib/meta';
 import { saveCheckout } from './lib/checkout';
 import WhatsAppButton from './components/WhatsAppButton';
-import { FormExtras, Garantia } from './components/FormExtras';
+import { FormExtras, GarantiaPlazo } from './components/FormExtras';
 
 // No esperamos más que esto a FormSubmit antes de ir a Mercado Pago.
 const MAX_WAIT_MS = 2500;
@@ -17,6 +17,7 @@ export default function Pagar() {
   const [planId, setPlanId] = useState(initial);
   const [errors, setErrors] = useState({});
   const [sending, setSending] = useState(false);
+  const [factura, setFactura] = useState(false);
   const formRef = useRef(null);
   const plan = PLANES[planId];
 
@@ -33,7 +34,11 @@ export default function Pagar() {
     else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(get('email'))) errs.email = 'Email inválido';
     if (get('telefono').replace(/\D/g, '').length < 8) errs.telefono = 'Ingresa un WhatsApp válido';
     if (!get('empresa')) errs.empresa = 'Requerido';
-    if (!f.elements.acepto.checked) errs.acepto = 'Debes aceptar las condiciones';
+    if (factura) {
+      if (!get('factura_rut')) errs.factura_rut = 'Requerido para la factura';
+      if (!get('factura_razon_social')) errs.factura_razon_social = 'Requerido para la factura';
+    }
+    if (!f.elements.acepto.checked) errs.acepto = 'Debes aceptar los Términos y Condiciones';
     setErrors(errs);
     return Object.keys(errs).length === 0;
   };
@@ -57,6 +62,7 @@ export default function Pagar() {
     data.set('_subject', `Checkout iniciado — ${plan.nombre} — ${nombre}`);
     data.set('plan', plan.nombre);
     data.set('monto', String(plan.precio));
+    data.set('documento', factura ? 'Factura' : 'Boleta');
 
     track('begin_checkout', { plan: planId });
 
@@ -100,7 +106,7 @@ export default function Pagar() {
         .p-plan-name { font-weight: 700; font-size: 0.9375rem; }
         .p-plan-price { font-size: 0.8125rem; color: var(--fog); }
 
-        .p-summary-row { display: flex; justify-content: space-between; align-items: baseline; gap: 1rem; }
+        .p-summary-row { display: flex; flex-direction: column; gap: 0.25rem; }
         .p-summary-name { font-size: 1.125rem; font-weight: 700; }
         .p-summary-price { font-size: 1.5rem; font-weight: 700; letter-spacing: -0.03em; white-space: nowrap; }
         .p-summary-meta { font-size: 0.8125rem; color: var(--fog); margin-top: 0.25rem; }
@@ -116,6 +122,12 @@ export default function Pagar() {
         .p-field input.err { border-color: var(--red); }
         .p-error { font-size: 0.75rem; color: var(--red); }
 
+        .p-iva { font-size: 0.75rem; font-weight: 500; color: var(--fog); letter-spacing: 0; margin-left: 0.375rem; }
+        .p-cuotas { font-size: 0.875rem; color: var(--noir); font-weight: 500; margin-top: 0.375rem; }
+        .p-label { font-size: 0.8125rem; font-weight: 600; color: var(--charcoal); }
+        .p-toggle { display: flex; gap: 0.5rem; }
+        .p-toggle-opt { flex: 1; border: 2px solid var(--cloud); border-radius: 10px; padding: 0.5rem 1rem; font-family: inherit; font-size: 0.9375rem; font-weight: 500; background: var(--white); color: var(--noir); cursor: pointer; transition: border-color 0.15s; }
+        .p-toggle-opt.active { border-color: var(--noir); background: #F5F5F5; font-weight: 600; }
         .p-check { display: flex; align-items: flex-start; gap: 0.625rem; font-size: 0.875rem; color: var(--iron); cursor: pointer; line-height: 1.5; }
         .p-check input { width: 18px; height: 18px; margin-top: 2px; flex-shrink: 0; accent-color: var(--noir); }
         .p-check a { color: var(--noir); }
@@ -157,13 +169,12 @@ export default function Pagar() {
           </div>
           <div className="p-summary-row">
             <div className="p-summary-name">{plan.nombre}</div>
-            <div className="p-summary-price">{formatCLP(plan.precio)}</div>
+            <div className="p-summary-price">{formatCLP(plan.precio)}<span className="p-iva">IVA incluido</span></div>
           </div>
-          <div className="p-summary-meta">
-            Entrega en {plan.plazo}{CUOTAS_DISPONIBLES && ' · Puedes pagar en cuotas'}
-          </div>
+          <div className="p-cuotas">o {textoCuotas(plan.precio)} al pagar con tarjeta de crédito</div>
+          <div className="p-summary-meta">Sin mensualidades · {plan.listo}</div>
           <ul className="p-includes">
-            {plan.incluye.map((i) => <li key={i}>{i}</li>)}
+            {plan.items.map((i) => <li key={i}>{i}</li>)}
           </ul>
         </div>
 
@@ -193,23 +204,49 @@ export default function Pagar() {
               {errors.empresa && <span className="p-error">{errors.empresa}</span>}
             </div>
 
+            {/* Factura (opcional) */}
+            <div className="p-field">
+              <span className="p-label">¿Necesitas factura?</span>
+              <div className="p-toggle" role="radiogroup" aria-label="¿Necesitas factura?">
+                {[{ val: false, label: 'No' }, { val: true, label: 'Sí' }].map(({ val, label }) => (
+                  <button
+                    key={label} type="button" role="radio" aria-checked={factura === val}
+                    className={`p-toggle-opt${factura === val ? ' active' : ''}`}
+                    onClick={() => setFactura(val)}
+                  >{label}</button>
+                ))}
+              </div>
+            </div>
+            {factura && (
+              <>
+                <div className="p-field">
+                  <label htmlFor="p-frut">RUT de la empresa</label>
+                  <input id="p-frut" name="factura_rut" type="text" placeholder="76.123.456-7" className={errors.factura_rut ? 'err' : ''} onChange={() => clearError('factura_rut')} />
+                  {errors.factura_rut && <span className="p-error">{errors.factura_rut}</span>}
+                </div>
+                <div className="p-field">
+                  <label htmlFor="p-frs">Razón social</label>
+                  <input id="p-frs" name="factura_razon_social" type="text" placeholder="Mi Empresa SpA" className={errors.factura_razon_social ? 'err' : ''} onChange={() => clearError('factura_razon_social')} />
+                  {errors.factura_razon_social && <span className="p-error">{errors.factura_razon_social}</span>}
+                </div>
+              </>
+            )}
+
             <label className="p-check">
               <input type="checkbox" name="acepto" value="sí" onChange={() => clearError('acepto')} />
               <span>
-                {TERMS_URL
-                  ? <>Acepto las <a href={TERMS_URL} target="_blank" rel="noopener noreferrer">condiciones del servicio</a></>
-                  : 'Acepto las condiciones del servicio'}
+                Acepto los <a href="#/terminos" target="_blank" rel="noopener noreferrer">Términos y Condiciones</a>
               </span>
             </label>
             {errors.acepto && <span className="p-error">{errors.acepto}</span>}
 
-            <Garantia />
+            <GarantiaPlazo plan={planId} nota="El plazo corre desde que confirmamos por WhatsApp que recibimos todo tu material." />
 
             <div>
               <button type="submit" className="p-submit" disabled={sending}>
                 {sending ? 'Redirigiendo a Mercado Pago…' : 'Ir al pago seguro con Mercado Pago →'}
               </button>
-              <div className="p-secure">Pago procesado por Mercado Pago</div>
+              <div className="p-secure">Pagas a {RAZON_SOCIAL} · Boleta o factura</div>
             </div>
           </div>
         </form>

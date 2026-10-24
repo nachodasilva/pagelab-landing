@@ -8,6 +8,7 @@ const MENSAJES = {
   hero: MENSAJE_GENERAL,
   flotante: 'Hola, tengo una consulta sobre Pagelab',
   faq: 'Hola, tengo una duda sobre Pagelab',
+  precios: 'Hola, no sé qué plan elegir. ¿Me ayudan?',
   caso_validar: 'Hola, quiero validar una idea con una landing page. ¿Me ayudan?',
   caso_negocio: 'Hola, tengo un negocio sin página web y quiero un sitio. ¿Me ayudan?',
   caso_portafolio: 'Hola, quiero mi portafolio online. ¿Me ayudan?',

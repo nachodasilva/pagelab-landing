@@ -1,5 +1,5 @@
 import { attributionFields } from '../lib/attribution';
-import { GARANTIA_TITULO, GARANTIA_TEXTO } from '../config';
+import { getPlan } from '../config';
 import './components.css';
 
 // Honeypot + origen de campaña. Va dentro de todos los formularios.
@@ -16,17 +16,23 @@ export function FormExtras() {
   );
 }
 
-export function Garantia({ className = '' }) {
-  if (!GARANTIA_TEXTO) return null;
+export const IconEscudo = ({ size = 18 }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+    <path d="M9 12l2 2 4-4"/>
+  </svg>
+);
+
+// Garantía de plazo según el plan. `nota` agrega una línea pequeña debajo.
+export function GarantiaPlazo({ plan, nota, className = '' }) {
+  const p = getPlan(plan);
+  if (!p) return null;
   return (
     <div className={`garantia ${className}`}>
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
-        <path d="M9 12l2 2 4-4"/>
-      </svg>
+      <IconEscudo />
       <div>
-        <strong>{GARANTIA_TITULO}</strong>
-        <span>{GARANTIA_TEXTO}</span>
+        <strong>{p.garantia}</strong>
+        {nota && <span>{nota}</span>}
       </div>
     </div>
   );

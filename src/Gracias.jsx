@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { PLANES, CONTACT_EMAIL, WHATSAPP_DISPLAY, formatCLP } from './config';
+import { PLANES, CONTACT_EMAIL, WHATSAPP_DISPLAY, AVISO_FECHA_ENTREGA, formatCLP } from './config';
 import { track } from './lib/track';
 import { buildWhatsAppLink, trackWhatsApp } from './lib/whatsapp';
 import { usePageMeta } from './lib/meta';
@@ -114,6 +114,7 @@ export default function Gracias() {
           <button className="g-btn g-btn-lg" onClick={() => navigate('/brief')}>Completar mi brief →</button>
           <div className="g-next-note">También te enviamos el link por email/WhatsApp.</div>
         </div>
+        <p className="g-sub">{AVISO_FECHA_ENTREGA}</p>
 
         {/* Badge del plan */}
         <div className="g-plan-badge">

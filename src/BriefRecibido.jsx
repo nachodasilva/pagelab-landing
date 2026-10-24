@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { PLANES } from './config';
+import { PLANES, AVISO_FECHA_ENTREGA } from './config';
 import { track } from './lib/track';
 import { usePageMeta } from './lib/meta';
 import { readCheckout } from './lib/checkout';
@@ -63,7 +63,7 @@ export default function BriefRecibido() {
           {plan
             ? <>Te enviaremos el preview de tu {plan.nombre} en {plan.plazo}.</>
             : <>Te enviaremos el preview en el plazo de tu plan.</>}
-          {' '}Si nos falta algo, te escribimos por WhatsApp.
+          {' '}{AVISO_FECHA_ENTREGA}
         </p>
         <div className="br-help">
           <p>¿Quieres agregar algo más?</p>
