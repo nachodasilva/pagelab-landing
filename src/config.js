@@ -40,57 +40,57 @@ export const PRECIO_SITIO = 399990;
 // Renovación del dominio .cl desde el 2º año (la paga el cliente a NIC Chile).
 export const DOMINIO_RENOVACION_APROX = 10000;
 
-const ITEMS_COMUNES = [
-  'Botón de WhatsApp y formulario de contacto',
-  'Pixel de Meta y Google Analytics listos para publicidad',
-];
-const ITEMS_PROPIEDAD = [
+// Lo que incluye Web Pyme 72h (Sitio Pyme incluye todo esto + lo suyo).
+const ITEMS_PYME = [
+  'Textos escritos por nosotros',
+  '1 página, hasta 6 secciones',
+  'Botón de WhatsApp y formulario',
+  'Google Maps (Perfil de Empresa)',
+  'Alta en Google y SEO básico',
+  'Pixel de Meta y Google Analytics',
+  'Kit de lanzamiento',
+  '1 ronda de cambios + 30 días de cambios menores',
   'Dominio .cl a tu nombre (1er año incluido)',
-  'Hosting y certificado SSL incluidos, sin mensualidades',
+  'Hosting y SSL sin mensualidades',
   'El sitio es tuyo',
 ];
 
 export const PLANES = {
   landing: {
     id: 'landing',
-    nombre: 'Landing Page',
+    nombre: 'Web Pyme 72h',
     precio: PRECIO_LANDING,
-    plazo: '3 días hábiles',
+    plazo: '72 horas',
     mpLink: MP_LINK_LANDING,
     etiqueta: 'Más elegido',
-    subtitulo: 'Para emprendedores sin sitio web que necesitan más clientes.',
-    listo: 'Lista en 3 días hábiles',
-    garantia: 'Tu landing en 3 días hábiles o te devolvemos el 100%',
-    garantiaTarjeta: 'Lista en 3 días hábiles o te devolvemos el 100%',
-    items: ['1 página, hasta 6 secciones', ...ITEMS_COMUNES, '1 ronda de cambios', ...ITEMS_PROPIEDAD],
+    subtitulo: 'Para pymes de servicios que necesitan verse profesionales y recibir consultas.',
+    listo: 'Terminada en 72 horas desde que completas tu brief',
+    garantia: 'Tu web terminada en 72 horas o te devolvemos el 100%',
+    garantiaTarjeta: 'Terminada en 72 horas o te devolvemos el 100%',
+    items: ITEMS_PYME,
   },
   sitio: {
     id: 'sitio',
-    nombre: 'Sitio Web',
+    nombre: 'Sitio Pyme',
     precio: PRECIO_SITIO,
     plazo: '5 días hábiles',
     mpLink: MP_LINK_SITIO,
     etiqueta: null,
-    subtitulo: 'Para negocios que necesitan explicar su propuesta y convertir visitantes.',
-    listo: 'Listo en 5 días hábiles',
-    garantia: 'Tu sitio web en 5 días hábiles o te devolvemos el 100%',
-    garantiaTarjeta: 'Preview en 5 días hábiles o te devolvemos el 100%',
-    items: ['Hasta 5 páginas', ...ITEMS_COMUNES, '2 rondas de cambios', ...ITEMS_PROPIEDAD],
+    subtitulo: 'Para negocios con varios servicios que explicar.',
+    listo: 'Terminado en 5 días hábiles desde que completas tu brief',
+    garantia: 'Tu sitio terminado en 5 días hábiles o te devolvemos el 100%',
+    garantiaTarjeta: 'Terminado en 5 días hábiles o te devolvemos el 100%',
+    items: ['Todo lo de Web Pyme 72h', 'Hasta 5 páginas', '2 rondas de cambios'],
   },
 };
 
 export const getPlan = (id) => PLANES[id] ?? null;
 
 // Se muestra en /gracias y /brief-recibido
-export const AVISO_FECHA_ENTREGA = 'Cuando tengamos todo tu material, te confirmaremos por WhatsApp la fecha exacta de entrega de tu preview.';
+export const AVISO_FECHA_ENTREGA = 'Al completar tu brief te confirmamos por escrito el día y la hora en que te llega tu web terminada en un link.';
 
 // Línea de cuotas: "3 cuotas sin interés de $66.663"
 export const textoCuotas = (precio) => `${CUOTAS_SIN_INTERES} cuotas sin interés de ${formatCLP(valorCuota(precio))}`;
-
-// ── Cifras de confianza ─────────────────────────────────────────────────────
-export const SITIOS_ENTREGADOS = 47;
-export const RATING = 4.9;
-export const TIEMPO_RESPUESTA_PROMEDIO = '37 min.';
 
 // ── Google Ads (preparado, desactivado) ─────────────────────────────────────
 // Las conversiones se importan desde GA4, así que esto queda vacío.

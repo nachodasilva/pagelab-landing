@@ -61,8 +61,8 @@ export default function BriefRecibido() {
         <h1 className="br-title">Recibimos todo</h1>
         <p className="br-sub">
           {plan
-            ? <>Te enviaremos el preview de tu {plan.nombre} en {plan.plazo}.</>
-            : <>Te enviaremos el preview en el plazo de tu plan.</>}
+            ? <>Te enviaremos tu {plan.nombre} terminada en un link en {plan.plazo}.</>
+            : <>Te enviaremos tu web terminada en un link en el plazo de tu plan.</>}
           {' '}{AVISO_FECHA_ENTREGA}
         </p>
         <div className="br-help">

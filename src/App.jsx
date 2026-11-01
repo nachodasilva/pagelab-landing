@@ -2,15 +2,11 @@ import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import heroImg from './assets/hero.jpg';
 import heroBg from './assets/hero-bg.webp';
-import imgKivo from './assets/Kivo.webp';
-import imgFloresta from './assets/Floresta la ermita.webp';
-import imgAcerca from './assets/Acerca Consultores.webp';
-import imgConecta from './assets/Conecta Franquicias.webp';
 import {
   PLANES, FORMSUBMIT_AJAX_URL, CUOTAS_SIN_INTERES, RAZON_SOCIAL, RUT_EMPRESA, COMUNA,
-  DOMINIO_RENOVACION_APROX, SITIOS_ENTREGADOS, RATING, TIEMPO_RESPUESTA_PROMEDIO,
-  formatCLP, textoCuotas,
+  DOMINIO_RENOVACION_APROX, PRECIO_LANDING, formatCLP, textoCuotas,
 } from './config';
+import { landing } from './content/landing';
 import { VARIANTS } from './variants';
 import { track, trackViewPricingOnce } from './lib/track';
 import { buildWhatsAppLink, trackWhatsApp } from './lib/whatsapp';
@@ -18,50 +14,98 @@ import { usePageMeta } from './lib/meta';
 import WhatsAppButton, { WhatsAppIcon } from './components/WhatsAppButton';
 import { FormExtras, IconEscudo } from './components/FormExtras';
 
-// "37 min." → 37 y " min." para la animación del contador
-const RESP_NUM = parseInt(TIEMPO_RESPUESTA_PROMEDIO, 10) || 0;
-const RESP_UNIT = TIEMPO_RESPUESTA_PROMEDIO.replace(/^\d+/, '');
-const LEAD_PLAN = { 'Landing Page': 'landing', 'Sitio Web': 'sitio' };
+const LEAD_PLAN = { [PLANES.landing.nombre]: 'landing', [PLANES.sitio.nombre]: 'sitio' };
+
+const HEADLINES = {
+  A: 'Tu página web profesional, terminada en 72 horas. Sin escribir una sola línea.',
+  B: 'Cuéntanos tu negocio en 10 minutos. En 72 horas tienes tu web terminada.',
+};
+
+// ── Datos de src/content/landing.js (vacío = no se muestra) ────────────────
+const testimoniosVerificados = landing.testimonios.filter((t) => t.verificado);
+const portafolio = landing.portafolio;
+const stats = landing.stats;
+// Celular del hero: primer proyecto con imagen que no sea propio
+const sitioHero = portafolio.find((p) => (p.imagenMovil || p.imagen) && !p.etiqueta);
+const antesDespues = landing.antesDespues?.instagram && landing.antesDespues?.web ? landing.antesDespues : null;
+const hayCupos = landing.proximoInicio || landing.cuposSemana;
+
+const iniciales = (nombre) => nombre.split(' ').map((w) => w[0]).slice(0, 2).join('').toUpperCase();
 
 // ── SVG Icons ─────────────────────────────────────────────────────────────
-const IconClipboard = () => (
-  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2"/>
-    <rect x="9" y="3" width="6" height="4" rx="1"/>
-    <path d="M9 12h6M9 16h4"/>
-  </svg>
-);
 const IconClock = () => (
   <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <circle cx="12" cy="12" r="10"/>
     <path d="M12 6v6l4 2"/>
   </svg>
 );
-const IconCheck = () => (
+const IconRedo = () => (
   <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M22 11.08V12a10 10 0 11-5.93-9.14"/>
-    <path d="M22 4L12 14.01l-3-3"/>
+    <path d="M21 12a9 9 0 11-3-6.7L21 8"/>
+    <path d="M21 3v5h-5"/>
   </svg>
 );
-const IconRocket = () => (
+const IconKey = () => (
   <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 00-2.91-.09z"/>
-    <path d="M12 15l-3-3a22 22 0 012-3.95A12.88 12.88 0 0122 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 01-4 2z"/>
-    <path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5"/>
+    <circle cx="7.5" cy="15.5" r="5.5"/>
+    <path d="M11.5 11.5L22 1M18 5l3 3M15 8l2 2"/>
   </svg>
 );
-const IconBuilding = () => (
-  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <rect x="3" y="3" width="18" height="18" rx="1"/>
-    <path d="M9 22V12h6v10M3 9h18M9 3v6M15 3v6"/>
-  </svg>
+const IconTick = () => (
+  <span className="form-bullet-icon">
+    <svg viewBox="0 0 10 10" fill="none">
+      <path d="M2 5l2 2 4-4" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+    </svg>
+  </span>
 );
-const IconBriefcase = () => (
-  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <rect x="2" y="7" width="20" height="14" rx="2"/>
-    <path d="M16 21V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v16"/>
-  </svg>
-);
+
+const PROBLEMAS = [
+  'Un cliente te pide tu página y le mandas el Instagram.',
+  'Llevas meses (o años) con la web "pendiente".',
+  'Ya le pagaste a alguien que nunca entregó, o te cotizaron $1.000.000 y dos meses.',
+  'Probaste Wix un fin de semana y quedó a medias.',
+  'Todo tu negocio depende de una cuenta de Instagram que no controlas.',
+];
+
+const OFERTA = [
+  { t: 'Textos escritos por nosotros.', d: 'Respondes unas preguntas simples y convertimos tus respuestas en textos que venden.' },
+  { t: 'Diseño profesional, pensado para el celular.', d: 'Hasta 6 secciones, con botón de WhatsApp y formulario de contacto.' },
+  { t: 'Imágenes incluidas.', d: 'Si no tienes fotos, usamos imágenes profesionales acordes a tu rubro.' },
+  { t: 'Te ponemos en Google Maps.', d: 'Creamos u optimizamos tu Perfil de Empresa para que te encuentren cerca.' },
+  { t: 'Te damos de alta en Google.', d: 'Search Console y SEO básico para que tu web aparezca en búsquedas.' },
+  { t: 'Lista para hacer publicidad.', d: 'Pixel de Meta y Google Analytics configurados desde el día uno.' },
+  { t: 'Kit de lanzamiento.', d: 'Un post, una historia y un mensaje de WhatsApp listos para anunciar tu web.' },
+  { t: '30 días de cambios menores.', d: 'Si algo cambia en tu negocio, lo actualizamos sin costo.' },
+  { t: 'Dominio .cl a tu nombre, hosting y SSL sin mensualidades.', d: 'El sitio es tuyo.' },
+];
+
+// quien: 'tu' | 'nos'
+const LISTA = [
+  { l: 'L', resto: 'o cuentas', quien: 'tu', d: 'Respondes un brief guiado de 10 minutos, con preguntas simples y la opción de contestar con notas de voz (o lo hacemos en una llamada de 15). Te confirmamos por escrito la fecha y hora en que verás tu web.' },
+  { l: 'I', resto: 'nterpretamos', quien: 'nos', d: 'Convertimos tus respuestas en textos que venden.' },
+  { l: 'S', resto: 'itio armado', quien: 'nos', d: 'Diseño, imágenes, botón de WhatsApp y formulario funcionando.' },
+  { l: 'T', resto: 'ú la revisas', quien: 'tu', d: 'Te llega un link para verla en tu celular y pides los cambios incluidos.' },
+  { l: 'A', resto: 'l aire', quien: 'nos', d: 'Apenas la apruebas, la publicamos con tu dominio, Google Maps y el kit de lanzamiento.' },
+];
+
+const GARANTIAS = [
+  { Icon: IconClock, t: 'Plazo o devolución.', d: 'Si tu web terminada no te llega en la fecha que te dimos, te devolvemos el 100%.' },
+  { Icon: IconRedo, t: 'Te encanta o la rehacemos.', d: 'Si al verla terminada no te convence, la rediseñamos desde cero. Si tampoco te gusta, te devolvemos todo.' },
+  { Icon: IconKey, t: 'Es tuya.', d: 'Dominio a tu nombre, cero mensualidades y te entregamos los archivos si un día te quieres ir.' },
+];
+
+const FAQS = [
+  { q: '¿Cómo sé que no van a desaparecer con mi plata?', a: `PageLab es un servicio de ${RAZON_SOCIAL}${RUT_EMPRESA ? ` (RUT ${RUT_EMPRESA})` : ''}, agencia de marketing digital en ${COMUNA.split(',')[0]}. Pagas por Mercado Pago, emitimos boleta o factura y, si no te mostramos tu web terminada en la fecha comprometida, te devolvemos el 100%.` },
+  { q: 'No tengo textos ni fotos, ¿igual se puede?', a: 'Sí, para eso existe el brief. Respondes preguntas simples en 10 minutos (puedes contestar con notas de voz) y nosotros escribimos todos los textos. Si no tienes fotos, usamos imágenes profesionales acordes a tu rubro.' },
+  { q: '¿Desde cuándo corren las 72 horas y cuándo queda publicada?', a: `La landing se entrega terminada en 72 horas corridas (fines de semana incluidos) desde que completas el brief; al terminarlo te confirmamos día y hora. El Sitio Pyme, en ${PLANES.sitio.plazo}. Ese día te mandamos tu web en un link para revisarla, y la publicamos apenas la apruebas.` },
+  { q: '¿Y si no me gusta el diseño?', a: 'Tienes cambios incluidos (1 ronda en la landing, 2 en el sitio). Si al verla terminada no te convence, la rediseñamos desde cero una vez; si tampoco te gusta, te devolvemos el 100%. Solo tienes que pedirlo dentro de los 5 días corridos desde que recibes el link.' },
+  { q: '¿Hay mensualidades o costos después?', a: `No. El hosting y el certificado SSL no tienen costo mensual. Inscribimos tu dominio .cl a tu nombre y pagamos el primer año; desde el segundo año lo renuevas directo con NIC Chile (aprox. ${formatCLP(DOMINIO_RENOVACION_APROX)} al año). Si ya tienes dominio, lo conectamos sin costo.` },
+  // [CONFIRMAR CON NACHO: qué pasa después de los 30 días] — no se muestra hasta definirlo.
+  { q: '¿Qué pasa si después quiero cambiar algo?', a: 'Durante los 30 días siguientes a la publicación hacemos cambios menores sin costo: textos, fotos o datos de contacto.' },
+  { q: '¿La web me va a traer clientes?', a: 'La web te hace visible y creíble. Para traer más clientes te dejamos listo Google Maps y la publicidad; si quieres, lanzamos tu primera campaña.' },
+  { q: '¿La página queda a mi nombre?', a: 'Sí. El dominio se inscribe a tu nombre y, una vez pagado, el sitio es tuyo. Si algún día quieres llevarlo a otro proveedor, te entregamos los archivos sin costo.' },
+  { q: '¿Puedo pagar en cuotas?', a: `Sí. Con tarjeta de crédito, hasta ${CUOTAS_SIN_INTERES} cuotas sin interés. También con débito o saldo de Mercado Pago.` },
+];
 
 export default function PagelabLanding({ variant = 'home' }) {
   const navigate = useNavigate();
@@ -69,12 +113,11 @@ export default function PagelabLanding({ variant = 'home' }) {
   usePageMeta(v.title, v.description);
   const [openFaq, setOpenFaq] = useState(null);
   const [formSubmitted, setFormSubmitted] = useState(false);
-  const [counters, setCounters] = useState({ sites: 0, days: 0, rating: 0, resp: 0 });
   const [pastHero, setPastHero] = useState(false);
-  const trustBarRef = useRef(null);
-  const countersStarted = useRef(false);
   const heroRef = useRef(null);
   const pricingRef = useRef(null);
+
+  const h1 = v.h1 ?? HEADLINES[landing.heroVariante] ?? HEADLINES.A;
 
   useEffect(() => { window.scrollTo(0, 0); }, [variant]);
 
@@ -107,43 +150,16 @@ export default function PagelabLanding({ variant = 'home' }) {
     return () => observer.disconnect();
   }, []);
 
-  useEffect(() => {
-    const el = trustBarRef.current;
-    if (!el) return;
-    const obs = new IntersectionObserver(([e]) => {
-      if (e.isIntersecting && !countersStarted.current) {
-        countersStarted.current = true;
-        const duration = 1800;
-        const steps = 72;
-        let step = 0;
-        const timer = setInterval(() => {
-          step++;
-          const ease = 1 - Math.pow(1 - Math.min(step / steps, 1), 3);
-          setCounters({
-            sites: Math.round(ease * SITIOS_ENTREGADOS),
-            days: Math.round(ease * 28) / 10,
-            rating: Math.round(ease * RATING * 10) / 10,
-            resp: Math.round(ease * RESP_NUM),
-          });
-          if (step >= steps) clearInterval(timer);
-        }, duration / steps);
-      }
-    }, { threshold: 0.4 });
-    obs.observe(el);
-    return () => obs.disconnect();
-  }, []);
-
   const scrollToSection = (id) => {
     document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' });
   };
 
   const toggleFaq = (i) => setOpenFaq(openFaq === i ? null : i);
 
-  // "Pagar y empezar hoy": con plan va al checkout, sin plan baja a precios
+  // "Reservar mi cupo": va al checkout corto (/pagar) y de ahí a Mercado Pago
   const goPay = (plan) => {
     track('select_item', { plan });
-    if (plan) navigate(`/pagar?plan=${plan}`);
-    else scrollToSection('pricing');
+    navigate(`/pagar?plan=${plan}`);
   };
 
   const handleFormSubmit = async (e) => {
@@ -160,40 +176,6 @@ export default function PagelabLanding({ variant = 'home' }) {
       }
     } catch { setFormSubmitted(true); }
   };
-
-  const faqs = [
-    { q: '¿Realmente puedo tener mi página en 3 días?', a: `Sí. La Landing Page queda lista en ${PLANES.landing.plazo} y el Sitio Web en ${PLANES.sitio.plazo}, contados desde que te confirmamos por WhatsApp que recibimos todo tu material. Si no cumplimos, te devolvemos el 100%.` },
-    { q: '¿Cómo sé que esto es confiable?', a: `Pagelab es un servicio de ${RAZON_SOCIAL}, agencia de marketing digital en ${COMUNA.split(',')[0]}. Emitimos boleta o factura por cada pago y pagas a través de Mercado Pago. Además, si no te entregamos el preview en el plazo comprometido, te devolvemos el 100% de lo pagado. Puedes ver sitios reales que hemos hecho en nuestro portafolio.` },
-    { q: '¿Puedo pagar directo o necesito consultar primero?', a: 'Puedes elegir. Si tienes dudas, escríbenos por WhatsApp: te ayudamos a elegir el plan y te respondemos en minutos. Si ya sabes qué necesitas, pagas en línea y empezamos el mismo día.' },
-    { q: '¿Qué pasa después de llenar el formulario?', a: 'Si pagas en línea, al terminar te pedimos el brief (5 minutos). Si nos escribes por WhatsApp o email, te respondemos en minutos con la recomendación de plan y el link de pago.' },
-    { q: '¿Puedo pagar en cuotas?', a: `Sí. Al pagar con tarjeta de crédito puedes elegir hasta ${CUOTAS_SIN_INTERES} cuotas sin interés. También puedes pagar con débito o con saldo de Mercado Pago.` },
-    { q: '¿Qué pasa si no cumplen el plazo?', a: 'Te devolvemos el 100% de lo pagado. El plazo corre desde que te confirmamos por WhatsApp que recibimos todo tu material; en ese mensaje te damos la fecha exacta de entrega del preview.' },
-    { q: '¿Y si no me gusta el primer diseño?', a: 'Si al ver el primer preview decides no seguir, y aún no has pedido cambios, te devolvemos el 75% de lo pagado. Puedes pedirlo dentro de los 5 días corridos siguientes a recibirlo.' },
-    { q: '¿Puedo ver el sitio antes de que quede público?', a: 'Sí. Te enviamos un preview para que lo revises. Tienes rondas de cambios incluidas. Solo publicamos cuando estés 100% conforme.' },
-    { q: '¿Puedo ver ejemplos antes de decidir?', a: 'Sí, revisa la sección "Trabajos más recientes" con sitios reales que hemos creado.' },
-    { q: '¿Qué pasa si no me gusta el resultado?', a: 'Revisas el preview antes de publicar y pides los cambios incluidos. Solo publicamos cuando estés conforme.' },
-    { q: '¿Necesito conocimientos técnicos?', a: 'Para nada. Solo necesitas tus textos, imágenes y logo. Nosotros nos encargamos del diseño, programación, publicación y seguridad.' },
-    { q: '¿Tengo que pagar hosting o dominio aparte?', a: `No. Si no tienes dominio, inscribimos un .cl a tu nombre cuando apruebas el preview y pagamos el primer año. Si ya tienes uno, lo conectamos sin costo. Desde el segundo año, renuevas el dominio directamente con NIC Chile (aprox. ${formatCLP(DOMINIO_RENOVACION_APROX)} al año). El hosting no tiene costo ni mensualidades.` },
-    { q: '¿La página queda a mi nombre?', a: 'Sí. El dominio se inscribe a tu nombre. Una vez pagado, el sitio es tuyo: si algún día quieres llevarlo a otro proveedor, te entregamos los archivos sin costo.' },
-  ];
-
-  // url: link "Ver sitio en vivo". Sin url, no se muestra el link.
-  const portfolioItems = [
-    { img: imgKivo, objPos: 'top', cat: 'Marketing Digital', title: 'KIVO', desc: 'Plataforma de gestión de Google Ads con IA. Landing enfocada en conversión.', url: 'https://kivo.cl' },
-    { img: imgFloresta, objPos: 'top', cat: 'Eventos & Turismo', title: 'Floresta La Ermita', desc: 'Centro de eventos en la cordillera. Diseño elegante con galería y cotización.', url: '' },
-    { img: imgAcerca, objPos: 'center', cat: 'Consultoría', title: 'Acerca Consultores', desc: 'Cotización online para consultoría empresarial. Formularios inteligentes.', url: 'https://acercaconsultores.cl' },
-    { bg: 'linear-gradient(135deg, #d32f2f, #f57c00)', label: 'CONTIGO PAN\nY CEBOLLA', cat: 'Gastronomía', title: 'Contigo Pan y Cebolla', desc: 'Emprendimiento gastronómico. Menú digital y reservas online.', url: 'https://contigopanycebolla.cl' },
-    { img: imgConecta, objPos: 'center', cat: 'Negocios', title: 'Conecta Franquicias', desc: 'Marketplace de franquicias. Buscador avanzado y sistema de matching.', url: 'https://conectafranquicias.cl' },
-  ];
-
-  // foto: URL de la foto del cliente · url: sitio del cliente. Vacíos = iniciales y sin link.
-  const testimonials = [
-    { quote: '"Después de gastar $1.5M en una agencia que nunca entregó, Pagelab me hizo la página en 4 días. Funciona, se ve bien, y no tuve que perseguir a nadie."', init: 'NC', name: 'Nicolás Chocaír', role: 'Acerca Consultores', foto: '', url: '' },
-    { quote: '"Llevaba 3 semanas peleando con Wix. Les pagué un viernes, el martes ya estaba publicado. La única vez que algo salió como prometieron."', init: 'NR', name: 'Nicolás Rodríguez', role: 'Contigo Pan y Cebolla', foto: '', url: '' },
-    { quote: '"Necesitaba una página para una campaña urgente. Todos me dijeron imposible. Pagelab lo hizo en 4 días. Salvaron mi lanzamiento."', init: 'BC', name: 'Bruno Calderón', role: 'KIVO', foto: '', url: '' },
-    { quote: '"Proceso súper simple. Llené el formulario, me respondieron en 1 hora, y 3 días después tenía mi sitio listo. Exactamente lo que prometieron."', init: 'SO', name: 'Sebastián Ortíz', role: 'Conecta Franquicias', foto: '', url: '' },
-    { quote: '"Sin jerga técnica, sin reuniones. Me explicaron todo en simple y entregaron exactamente lo que necesitaba a tiempo."', init: 'RS', name: 'Rodrigo Silva', role: 'Chef & Emprendedor', foto: '', url: '' },
-  ];
 
   return (
     <div className="landing-page">
@@ -259,67 +241,54 @@ export default function PagelabLanding({ variant = 'home' }) {
         .btn-secondary:hover { border-color: var(--noir); background: var(--bg-light); }
 
         /* ── Hero ── */
-        .hero { padding: 7rem 0 6rem; background-color: var(--white); background-size: cover; background-position: center; overflow: hidden; }
-        .hero-content { max-width: 720px; margin: 0 auto; text-align: center; }
+        .hero { padding: 6rem 0 5.5rem; background-color: var(--white); background-size: cover; background-position: center; overflow: hidden; }
+        .hero-layout { display: grid; grid-template-columns: 1.25fr 0.75fr; gap: 4rem; align-items: center; max-width: 1100px; margin: 0 auto; }
+        .hero-content { text-align: left; }
+        .hero-hook {
+          display: inline-flex; align-items: center;
+          background: var(--bg-light); border: 1px solid #E8E8E8;
+          padding: 0.3rem 0.875rem; border-radius: 100px;
+          font-size: 0.875rem; font-weight: 500; color: var(--noir); margin-bottom: 1.25rem;
+        }
         .hero-headline {
           font-size: clamp(2rem, 3.5vw, 3rem);
           font-weight: 700; line-height: 1.1;
           letter-spacing: -0.04em; margin-bottom: 1.25rem; color: var(--noir);
         }
-        .hero-sub { font-size: 1.0625rem; line-height: 1.75; color: var(--iron); margin-bottom: 1.75rem; }
-        .hero-sub strong { color: var(--noir); font-weight: 600; }
-        .hero-proof {
-          display: flex; align-items: center; gap: 0.625rem;
-          margin-bottom: 2rem; flex-wrap: wrap;
-        }
-        .proof-badge {
-          display: inline-flex; align-items: center; gap: 0.375rem;
-          background: var(--bg-light); border: 1px solid #E8E8E8;
-          padding: 0.3rem 0.75rem; border-radius: 100px;
-          font-size: 0.8125rem; font-weight: 500; color: var(--noir);
-        }
-        .hero-ctas { display: flex; gap: 0.75rem; align-items: center; justify-content: center; flex-wrap: wrap; margin-bottom: 0.625rem; }
-        .cta-note { font-size: 0.8125rem; color: var(--iron); margin-bottom: 1.25rem; line-height: 1.6; }
+        .hero-sub { font-size: 1.0625rem; line-height: 1.75; color: var(--iron); margin-bottom: 1.5rem; }
+        .hero-checks { list-style: none; display: flex; flex-wrap: wrap; gap: 0.5rem 1.25rem; margin-bottom: 1.5rem; }
+        .hero-checks li { display: flex; align-items: center; gap: 0.5rem; font-size: 0.9375rem; font-weight: 500; color: var(--noir); }
+        .hero-price { font-size: 1rem; color: var(--iron); margin-bottom: 1.5rem; }
+        .hero-price strong { color: var(--noir); font-weight: 700; }
+        .hero-ctas { display: flex; gap: 0.75rem; align-items: center; flex-wrap: wrap; margin-bottom: 0.875rem; }
+        .cta-note { font-size: 0.8125rem; color: var(--iron); line-height: 1.6; }
         .cta-note svg { vertical-align: -2px; margin-right: 2px; }
-        .hero-link { font-size: 0.875rem; color: var(--iron); text-decoration: underline; cursor: pointer; background: none; border: none; font-family: var(--font); }
-        .hero-link:hover { color: var(--noir); }
+        .cta-cupos { font-size: 0.8125rem; color: var(--noir); font-weight: 600; margin-top: 0.25rem; }
+        .hero-strip { display: flex; align-items: center; gap: 0.75rem; margin-top: 1.75rem; padding-top: 1.25rem; border-top: 1px solid #ECECEC; }
+        .hero-strip p { font-size: 0.875rem; font-weight: 600; color: var(--noir); }
+        .strip-avatars { display: flex; }
+        .strip-avatars .author-avatar { width: 32px; height: 32px; font-size: 0.6875rem; border: 2px solid var(--white); margin-left: -8px; }
+        .strip-avatars .author-avatar:first-child { margin-left: 0; }
 
-        /* ── Rating Badge ── */
-        .hero-rating-badge {
-          display: inline-flex; align-items: center; gap: 0.5rem;
-          background: var(--white); border: 1.5px solid #E8E8E8;
-          border-radius: 100px; padding: 0.45rem 1rem 0.45rem 0.75rem;
-          margin-bottom: 1rem; box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+        /* ── Celular del hero (y antes/después) ── */
+        .hero-visual { display: flex; justify-content: center; align-items: flex-end; gap: 1.25rem; }
+        .phone {
+          position: relative; width: 260px; aspect-ratio: 9 / 19; flex-shrink: 0;
+          border: 10px solid var(--noir); border-radius: 40px; overflow: hidden;
+          background: var(--white); box-shadow: 0 24px 60px rgba(0,0,0,0.16);
         }
-        .rating-stars { color: #F5A623; font-size: 0.9rem; letter-spacing: -1px; line-height: 1; }
-        .rating-score { font-size: 0.875rem; font-weight: 700; color: var(--noir); }
-        .rating-score span { font-weight: 400; color: var(--fog); }
-        .rating-sep { width: 1px; height: 14px; background: #E0E0E0; flex-shrink: 0; }
-        .rating-clients { font-size: 0.8125rem; color: var(--iron); font-weight: 500; }
+        .phone::before { content: ''; position: absolute; top: 8px; left: 50%; transform: translateX(-50%); width: 34%; height: 18px; border-radius: 100px; background: var(--noir); z-index: 1; }
+        .phone img { width: 100%; height: 100%; object-fit: cover; object-position: top center; display: block; }
+        .phone--sm { width: 190px; border-width: 8px; border-radius: 32px; }
+        .ba-item { display: flex; flex-direction: column; align-items: center; gap: 0.625rem; }
+        .ba-label { font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: var(--fog); }
 
-
-        /* ── Trust Bar ── */
+        /* ── Trust Bar (cifras reales desde config) ── */
         .trust-bar { background: var(--noir); padding: 3rem 0; }
-        .trust-grid { display: grid; grid-template-columns: repeat(4, 1fr); text-align: center; }
-        .trust-item {
-          padding: 1rem 1.5rem;
-          border-right: 1px solid rgba(255,255,255,0.07);
-          position: relative;
-        }
+        .trust-grid { display: grid; grid-template-columns: repeat(var(--cols, 4), 1fr); text-align: center; }
+        .trust-item { padding: 1rem 1.5rem; border-right: 1px solid rgba(255,255,255,0.07); }
         .trust-item:last-child { border-right: none; }
-        .trust-item-icon {
-          font-size: 1.125rem; margin-bottom: 0.625rem;
-          display: flex; align-items: center; justify-content: center;
-          width: 36px; height: 36px; border-radius: 8px;
-          background: rgba(255,255,255,0.06); margin: 0 auto 0.75rem;
-          color: rgba(255,255,255,0.5);
-        }
-        .trust-number {
-          font-size: 2.625rem; font-weight: 800; color: var(--white);
-          line-height: 1; margin-bottom: 0.375rem;
-          letter-spacing: -0.04em;
-        }
-        .trust-number-suffix { font-size: 1.375rem; font-weight: 500; color: rgba(255,255,255,0.35); }
+        .trust-number { font-size: 2.625rem; font-weight: 800; color: var(--white); line-height: 1; margin-bottom: 0.375rem; letter-spacing: -0.04em; }
         .trust-label { font-size: 0.8125rem; color: rgba(255,255,255,0.4); font-weight: 500; }
 
         /* ── Section base ── */
@@ -329,7 +298,7 @@ export default function PagelabLanding({ variant = 'home' }) {
         .section-gray { background: var(--bg-mid); }
         .section-header { text-align: center; margin-bottom: 3rem; }
         .section-eyebrow { font-size: 0.6875rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.12em; color: var(--fog); margin-bottom: 0.625rem; }
-        .section-headline { font-size: clamp(1.625rem, 2.75vw, 2.25rem); font-weight: 700; line-height: 1.2; letter-spacing: -0.03em; margin-bottom: 0.75rem; color: var(--noir); }
+        .section-headline { font-size: clamp(1.625rem, 2.75vw, 2.25rem); font-weight: 700; line-height: 1.2; letter-spacing: -0.03em; margin-bottom: 0.75rem; color: var(--noir); max-width: 760px; margin-left: auto; margin-right: auto; }
         .section-dark .section-headline { color: var(--white); }
         .section-sub { font-size: 1rem; color: var(--iron); max-width: 560px; margin: 0 auto; }
         .section-dark .section-sub { color: var(--silver); }
@@ -341,49 +310,47 @@ export default function PagelabLanding({ variant = 'home' }) {
           color: var(--noir); margin-bottom: 1.25rem; flex-shrink: 0;
         }
 
-        /* ── Por qué funciona ── */
-        .why-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem; max-width: 1000px; margin: 0 auto; }
-        .why-card { padding: 2rem; background: var(--white); border: 1px solid #E8E8E8; border-radius: 10px; transition: all 0.2s; }
-        .why-card:hover { transform: translateY(-3px); box-shadow: 0 8px 24px rgba(0,0,0,0.06); }
-        .why-title { font-size: 1rem; font-weight: 700; margin-bottom: 0.625rem; color: var(--noir); }
-        .why-text { font-size: 0.9375rem; line-height: 1.7; color: var(--iron); }
+        /* ── Problema ── */
+        .problem-list { list-style: none; max-width: 720px; margin: 0 auto; display: flex; flex-direction: column; gap: 0.75rem; }
+        .problem-item { display: flex; align-items: flex-start; gap: 0.875rem; background: var(--white); border: 1px solid #E8E8E8; border-radius: 10px; padding: 1.125rem 1.25rem; font-size: 1rem; line-height: 1.55; color: var(--charcoal); }
+        .problem-mark { flex-shrink: 0; width: 22px; height: 22px; border-radius: 50%; background: var(--bg-mid); color: var(--iron); display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 700; margin-top: 1px; }
+        .problem-close { max-width: 720px; margin: 1.75rem auto 0; background: var(--noir); color: var(--white); border-radius: 12px; padding: 1.75rem 2rem; text-align: center; font-size: clamp(1.125rem, 2vw, 1.375rem); font-weight: 700; line-height: 1.4; letter-spacing: -0.02em; }
 
-        /* ── Proceso ── */
-        .process-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2.5rem; max-width: 900px; margin: 0 auto; }
-        .process-step { text-align: center; }
-        .step-num {
-          width: 48px; height: 48px; background: var(--noir); border-radius: 8px;
+        /* ── Oferta ── */
+        .offer-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.25rem; max-width: 1100px; margin: 0 auto; }
+        .offer-item { display: flex; gap: 0.875rem; align-items: flex-start; padding: 1.5rem; background: var(--white); border: 1px solid #E8E8E8; border-radius: 10px; transition: all 0.2s; }
+        .offer-item:hover { transform: translateY(-3px); box-shadow: 0 8px 24px rgba(0,0,0,0.06); }
+        .offer-item .form-bullet-icon { width: 22px; height: 22px; }
+        .offer-title { font-size: 1rem; font-weight: 700; color: var(--noir); margin-bottom: 0.25rem; line-height: 1.4; }
+        .offer-text { font-size: 0.9375rem; line-height: 1.6; color: var(--iron); }
+        .offer-anchor { text-align: center; margin-top: 2.5rem; font-size: 1.0625rem; color: var(--iron); }
+        .offer-anchor strong { color: var(--noir); }
+
+        /* ── Método LISTA ── */
+        .lista-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 1rem; max-width: 1180px; margin: 0 auto; }
+        .lista-step { position: relative; background: var(--white); border: 1px solid #E8E8E8; border-radius: 10px; padding: 1.5rem 1.25rem; }
+        .lista-step.tu { border: 2px solid var(--noir); }
+        .lista-letter {
+          width: 52px; height: 52px; background: var(--noir); border-radius: 8px;
           display: flex; align-items: center; justify-content: center;
-          font-size: 1.125rem; font-weight: 700; color: var(--white); margin: 0 auto 1.25rem;
+          font-size: 1.5rem; font-weight: 800; color: var(--white); margin-bottom: 1rem;
         }
-        .step-title { font-size: 1rem; font-weight: 700; margin-bottom: 0.5rem; color: var(--noir); }
-        .step-desc { font-size: 0.9375rem; line-height: 1.6; color: var(--iron); margin-bottom: 0.375rem; }
-        .step-time { font-size: 0.8125rem; color: var(--fog); }
+        .lista-step.nos .lista-letter { background: var(--bg-mid); color: var(--noir); }
+        .lista-who { position: absolute; top: 1.5rem; right: 1.25rem; }
+        .lista-title { font-size: 1rem; font-weight: 700; color: var(--noir); margin-bottom: 0.5rem; }
+        .lista-title b { font-weight: 800; text-decoration: underline; text-underline-offset: 3px; }
+        .lista-desc { font-size: 0.875rem; line-height: 1.6; color: var(--iron); }
+        .lista-legend { display: flex; justify-content: center; gap: 1rem; margin-bottom: 1.75rem; font-size: 0.8125rem; color: var(--iron); }
+        .lista-legend span { display: inline-flex; align-items: center; gap: 0.375rem; }
+        .lista-note { text-align: center; max-width: 620px; margin: 2.25rem auto 0; font-size: 1rem; line-height: 1.7; color: var(--iron); }
+        .lista-note strong { color: var(--noir); }
 
-        /* ── ¿Cómo prefieres empezar? ── */
-        .start-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1.5rem; max-width: 860px; margin: 0 auto; }
-        .start-card { padding: 2rem; border: 2px solid #E8E8E8; border-radius: 10px; background: var(--white); transition: all 0.2s; }
-        .start-card:hover { transform: translateY(-3px); box-shadow: 0 8px 24px rgba(0,0,0,0.07); }
-        /* .start-card.recommended removed */
-        .start-badge {
-          display: inline-block; background: var(--noir); color: var(--white);
-          padding: 3px 10px; border-radius: 100px; font-size: 0.6875rem;
-          font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 1rem;
-        }
-        .start-title { font-size: 1.1875rem; font-weight: 700; margin-bottom: 0.625rem; color: var(--noir); }
-        .start-desc { font-size: 0.9375rem; line-height: 1.7; color: var(--iron); margin-bottom: 1.25rem; }
-        .start-benefits { list-style: none; margin-bottom: 1.5rem; }
-        .start-benefits li { font-size: 0.875rem; color: var(--iron); padding: 0.3rem 0; }
-        .start-timing { font-size: 0.75rem; color: var(--fog); margin-top: 0.75rem; font-weight: 500; }
-
-        /* ── Para quién ── */
-        .cases-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem; max-width: 1000px; margin: 0 auto; }
-        .case-card { padding: 2rem; background: var(--white); border: 1px solid #E8E8E8; border-radius: 10px; transition: all 0.2s; }
-        .case-card:hover { box-shadow: 0 8px 24px rgba(0,0,0,0.06); transform: translateY(-3px); }
-        .case-title { font-size: 1.0625rem; font-weight: 700; margin-bottom: 0.625rem; color: var(--noir); }
-        .case-desc { font-size: 0.9375rem; line-height: 1.7; color: var(--iron); margin-bottom: 1.5rem; }
-        .case-ctas { display: flex; flex-direction: column; gap: 0.625rem; }
-        .case-ctas .btn { width: 100%; }
+        /* ── Garantías ── */
+        .guarantee-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem; max-width: 1000px; margin: 0 auto; }
+        .guarantee-card { padding: 2rem; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; }
+        .guarantee-card .icon-block { background: rgba(255,255,255,0.08); color: var(--white); }
+        .guarantee-title { font-size: 1.0625rem; font-weight: 700; color: var(--white); margin-bottom: 0.5rem; }
+        .guarantee-text { font-size: 0.9375rem; line-height: 1.7; color: var(--silver); }
 
         /* ── Portfolio ── */
         .portfolio-wrapper { overflow: hidden; padding: 1rem 0; }
@@ -392,7 +359,10 @@ export default function PagelabLanding({ variant = 'home' }) {
         @keyframes scrollPortfolio { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
         .portfolio-card { background: var(--white); border: 1px solid #E8E8E8; border-radius: 12px; overflow: hidden; min-width: 400px; max-width: 400px; flex-shrink: 0; transition: all 0.3s; }
         .portfolio-card:hover { box-shadow: 0 8px 24px rgba(0,0,0,0.08); transform: translateY(-4px); }
-        .portfolio-screenshot { width: 100%; aspect-ratio: 16/9; overflow: hidden; }
+        .portfolio-screenshot { position: relative; width: 100%; aspect-ratio: 16/9; overflow: hidden; }
+        .portfolio-screenshot img { width: 100%; height: 100%; object-fit: cover; object-position: top; }
+        .portfolio-placeholder { width: 100%; height: 100%; background: var(--noir); display: flex; align-items: center; justify-content: center; color: var(--white); font-weight: 700; font-size: 1.375rem; text-align: center; padding: 2rem; }
+        .portfolio-tag { position: absolute; top: 0.75rem; left: 0.75rem; }
         .portfolio-card-content { padding: 1.25rem; }
         .project-live { display: inline-block; margin-top: 0.625rem; font-size: 0.8125rem; font-weight: 600; color: var(--noir); text-decoration: underline; text-underline-offset: 3px; }
         .project-live:hover { color: var(--iron); }
@@ -404,11 +374,11 @@ export default function PagelabLanding({ variant = 'home' }) {
         .pricing-section { background: var(--bg-light); }
         /* Filas alineadas entre tarjetas (subgrid): mismo orden para comparar */
         .pricing-cards { display: grid; grid-template-columns: repeat(2, 1fr); column-gap: 1.5rem; max-width: 820px; margin: 0 auto; }
-        .pricing-card { background: var(--white); border: 1.5px solid #E0E0E0; border-radius: 12px; padding: 2rem; transition: all 0.2s; display: grid; grid-template-rows: subgrid; grid-row: span 10; align-content: start; }
+        .pricing-card { background: var(--white); border: 1.5px solid #E0E0E0; border-radius: 12px; padding: 2rem; transition: all 0.2s; display: grid; grid-template-rows: subgrid; grid-row: span 8; align-content: start; }
         .pricing-card:hover { border-color: var(--charcoal); transform: translateY(-3px); box-shadow: 0 12px 32px rgba(0,0,0,0.07); }
         .pricing-card.featured { border: 2px solid var(--noir); box-shadow: 0 12px 32px rgba(0,0,0,0.07); }
         .plan-top { min-height: 1.5rem; margin-bottom: 0.75rem; display: flex; gap: 0.375rem; flex-wrap: wrap; align-items: flex-start; }
-        .plan-badge { background: var(--noir); color: var(--white); padding: 3px 10px; border-radius: 100px; font-size: 0.6875rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; }
+        .plan-badge { background: var(--noir); color: var(--white); padding: 3px 10px; border-radius: 100px; font-size: 0.6875rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; white-space: nowrap; }
         .plan-badge.soft { background: var(--bg-mid); color: var(--noir); }
         .plan-name { font-size: 1.375rem; font-weight: 700; color: var(--noir); margin-bottom: 0.375rem; }
         .plan-desc { font-size: 0.875rem; color: var(--iron); margin-bottom: 1.5rem; line-height: 1.5; }
@@ -417,24 +387,19 @@ export default function PagelabLanding({ variant = 'home' }) {
         .plan-price .iva { font-size: 0.75rem; font-weight: 500; color: var(--fog); letter-spacing: 0; margin-left: 0.375rem; }
         .plan-cuotas { font-size: 0.875rem; color: var(--noir); font-weight: 500; margin-bottom: 0.25rem; }
         .plan-period { font-size: 0.8125rem; color: var(--fog); margin-bottom: 1.25rem; }
-        .plan-guarantee { display: flex; gap: 0.5rem; align-items: flex-start; font-size: 0.875rem; font-weight: 700; color: var(--noir); line-height: 1.4; background: var(--bg-light); border: 1px solid #ECECEC; border-radius: 8px; padding: 0.625rem 0.75rem; margin-bottom: 1.5rem; }
-        .plan-guarantee svg { flex-shrink: 0; margin-top: 1px; }
         .plan-divider { border: none; border-top: 1px solid #F0F0F0; margin-bottom: 1.25rem; }
-        .plan-pay-note { text-align: center; font-size: 0.75rem; color: var(--fog); margin-top: 0.625rem; }
-        .pricing-help { display: flex; flex-direction: column; align-items: center; gap: 0.875rem; text-align: center; margin-top: 2.5rem; }
+        .pricing-guarantee { display: flex; gap: 0.5rem; align-items: center; justify-content: center; max-width: 820px; margin: 2rem auto 0; font-size: 0.9375rem; font-weight: 700; color: var(--noir); line-height: 1.4; background: var(--white); border: 1px solid #ECECEC; border-radius: 8px; padding: 0.875rem 1rem; text-align: center; }
+        .pricing-guarantee svg { flex-shrink: 0; }
+        .plan-pay-note { text-align: center; font-size: 0.8125rem; color: var(--fog); margin-top: 0.875rem; }
+        .pricing-help { display: flex; flex-direction: column; align-items: center; gap: 0.875rem; text-align: center; margin-top: 2rem; }
         .pricing-help p { font-size: 1rem; font-weight: 600; color: var(--noir); }
         .features-list { list-style: none; margin-bottom: 1.75rem; }
         .features-list li { padding: 0.3rem 0; padding-left: 1.375rem; position: relative; font-size: 0.875rem; color: var(--iron); line-height: 1.5; }
         .features-list li::before { content: '✓'; position: absolute; left: 0; color: var(--noir); font-weight: 700; font-size: 0.875rem; }
-        .plan-ctas { display: flex; flex-direction: column; gap: 0.625rem; }
-        .plan-ctas .btn { width: 100%; }
 
-        /* ── Testimonials ── */
-        .testimonials-wrapper { overflow: hidden; padding: 1rem 0; }
-        .testimonials { display: flex; gap: 1.5rem; animation: scrollTestimonials 30s linear infinite; width: max-content; }
-        .testimonials:hover { animation-play-state: paused; }
-        @keyframes scrollTestimonials { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
-        .testimonial { background: var(--white); border: 1px solid #E8E8E8; border-radius: 10px; padding: 1.5rem; min-width: 360px; max-width: 360px; flex-shrink: 0; }
+        /* ── Testimonials (solo verificados, sin duplicar) ── */
+        .testimonials-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem; max-width: 1100px; margin: 0 auto; }
+        .testimonial { background: var(--white); border: 1px solid #E8E8E8; border-radius: 10px; padding: 1.5rem; }
         .testimonial-quote { font-size: 0.9375rem; line-height: 1.7; color: var(--iron); margin-bottom: 1.25rem; }
         .testimonial-author { display: flex; align-items: center; gap: 0.75rem; }
         .author-avatar { width: 40px; height: 40px; border-radius: 50%; background: var(--bg-mid); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.8125rem; color: var(--iron); flex-shrink: 0; overflow: hidden; }
@@ -442,6 +407,7 @@ export default function PagelabLanding({ variant = 'home' }) {
         .author-info strong { display: block; font-size: 0.875rem; color: var(--noir); }
         .author-info a { color: inherit; text-decoration: underline; text-underline-offset: 2px; }
         .author-info span { font-size: 0.8125rem; color: var(--fog); }
+        .proof-gap { margin-top: 4.5rem; }
 
         /* ── FAQ ── */
         .faq-list { max-width: 720px; margin: 0 auto; }
@@ -459,27 +425,25 @@ export default function PagelabLanding({ variant = 'home' }) {
         .faq-terms:hover { color: var(--noir); }
 
         /* ── CTA Final ── */
-        .final-cta {}
         .cta-final-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 4rem; align-items: center; }
         .cta-final-image img { width: 100%; border-radius: 12px; opacity: 0.88; display: block; }
-        .cta-final-content {}
         .cta-final-headline { font-size: clamp(1.75rem, 2.75vw, 2.5rem); font-weight: 700; line-height: 1.15; letter-spacing: -0.03em; color: var(--white); margin-bottom: 1rem; }
         .cta-final-sub { font-size: 1rem; line-height: 1.75; color: var(--silver); margin-bottom: 1.75rem; }
         .final-ctas { display: flex; gap: 0.75rem; align-items: center; flex-wrap: wrap; }
-        .cta-fine-print { font-size: 0.8125rem; color: rgba(255,255,255,0.4); margin-top: 1.25rem; }
+        .btn-light { background: var(--white); color: var(--noir); }
+        .btn-light:hover { background: var(--bg-mid); transform: translateY(-1px); }
+        .wa-btn.wa-on-dark { background: transparent; color: var(--white); border-color: rgba(255,255,255,0.25); }
+        .wa-btn.wa-on-dark:hover { border-color: var(--white); background: rgba(255,255,255,0.06); }
 
         /* ── Form section ── */
         .form-section { background: var(--bg-light); }
         .form-layout { display: grid; grid-template-columns: 1fr 1.5fr; gap: 5rem; align-items: start; max-width: 980px; margin: 0 auto; }
-        .form-copy {}
         .form-copy-headline { font-size: clamp(1.5rem, 2.5vw, 2rem); font-weight: 700; letter-spacing: -0.03em; line-height: 1.2; color: var(--noir); margin-bottom: 0.75rem; }
         .form-copy-sub { font-size: 0.9375rem; color: var(--iron); margin-bottom: 2rem; line-height: 1.6; }
         .form-copy-bullets { list-style: none; margin-bottom: 2rem; }
         .form-copy-bullets li { display: flex; align-items: flex-start; gap: 0.75rem; padding: 0.5rem 0; font-size: 0.9375rem; color: var(--iron); line-height: 1.5; }
         .form-bullet-icon { flex-shrink: 0; width: 20px; height: 20px; background: var(--noir); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-top: 2px; }
         .form-bullet-icon svg { width: 10px; height: 10px; }
-        .form-trust { font-size: 0.8125rem; color: var(--fog); padding-top: 1.25rem; border-top: 1px solid #E8E8E8; }
-        .form-trust strong { color: var(--iron); }
         .brief-form { background: var(--white); border: 1px solid #E8E8E8; border-radius: 12px; padding: 2rem; }
         .form-group { margin-bottom: 1.25rem; }
         .form-group label { display: block; font-size: 0.8125rem; font-weight: 600; color: var(--noir); margin-bottom: 0.375rem; }
@@ -490,7 +454,6 @@ export default function PagelabLanding({ variant = 'home' }) {
         .radio-group label { display: flex; align-items: center; gap: 0.5rem; font-size: 0.9375rem; font-weight: 400; cursor: pointer; }
         .radio-group input[type="radio"] { width: auto; }
         .form-submit { width: 100%; margin-top: 0.25rem; }
-        .form-note { text-align: center; font-size: 0.8125rem; color: var(--fog); margin-top: 0.625rem; }
         .form-success { text-align: center; padding: 3rem 2rem; background: var(--white); border-radius: 12px; border: 1px solid #E8E8E8; }
         .form-success-icon { font-size: 2.5rem; margin-bottom: 1rem; }
         .form-success h3 { font-size: 1.25rem; font-weight: 700; margin-bottom: 0.5rem; color: var(--noir); }
@@ -499,7 +462,6 @@ export default function PagelabLanding({ variant = 'home' }) {
         /* ── Footer SEO ── */
         .footer { background: var(--noir); color: var(--silver); padding: 3rem 0 1.5rem; }
         .footer-inner { display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 3rem; margin-bottom: 2.5rem; }
-        .footer-brand {}
         .footer-logo { font-size: 1.25rem; font-weight: 700; letter-spacing: -0.03em; text-transform: lowercase; color: var(--white); margin-bottom: 0.875rem; }
         .footer-desc { font-size: 0.875rem; color: var(--silver); line-height: 1.7; max-width: 340px; margin-bottom: 1.25rem; }
         .footer-contact { font-size: 0.8125rem; color: var(--fog); line-height: 1.8; }
@@ -530,21 +492,26 @@ export default function PagelabLanding({ variant = 'home' }) {
         .mobile-bar { display: none; }
 
         /* ── Responsive ── */
+        @media (max-width: 1100px) {
+          .lista-grid { grid-template-columns: 1fr; max-width: 560px; }
+          .lista-step { display: grid; grid-template-columns: 52px 1fr; column-gap: 1rem; padding-right: 6.5rem; }
+          .lista-letter { margin-bottom: 0; grid-row: span 2; }
+        }
         @media (max-width: 1024px) {
           .form-layout { grid-template-columns: 1fr; gap: 2.5rem; }
           .footer-inner { grid-template-columns: 1fr 1fr; }
+          .offer-grid { grid-template-columns: repeat(2, 1fr); }
         }
         @media (max-width: 900px) {
-          .hero-proof { justify-content: center; }
-          .hero-image-wrapper { max-width: 520px; margin: 0 auto; }
+          .hero-layout { grid-template-columns: 1fr; gap: 3rem; }
+          .hero-content { text-align: center; }
+          .hero-checks, .hero-ctas, .hero-strip { justify-content: center; }
           .trust-grid { grid-template-columns: repeat(2, 1fr); }
-          .trust-item { border-right: none; border-bottom: 1px solid rgba(255,255,255,0.07); }
-          .trust-item:nth-child(odd) { border-right: 1px solid rgba(255,255,255,0.07); }
-          .trust-item:nth-last-child(-n+2) { border-bottom: none; }
-          .why-grid { grid-template-columns: 1fr; max-width: 440px; }
-          .process-grid { grid-template-columns: 1fr; max-width: 380px; }
-          .start-grid { grid-template-columns: 1fr; max-width: 460px; }
-          .cases-grid { grid-template-columns: 1fr; max-width: 440px; }
+          .trust-grid[data-cols="1"] { grid-template-columns: 1fr; }
+          .trust-item { border-right: none; }
+          .trust-item:nth-child(odd):not(:last-child) { border-right: 1px solid rgba(255,255,255,0.07); }
+          .offer-grid { grid-template-columns: 1fr; max-width: 520px; }
+          .guarantee-grid { grid-template-columns: 1fr; max-width: 460px; }
           .pricing-cards { grid-template-columns: 1fr; max-width: 420px; }
           .pricing-card + .pricing-card { margin-top: 1.5rem; }
           .footer-inner { grid-template-columns: 1fr; gap: 2rem; }
@@ -552,7 +519,9 @@ export default function PagelabLanding({ variant = 'home' }) {
           .cta-final-image { display: none; }
         }
         @media (max-width: 768px) {
-          .hero { padding: 3.5rem 0 2.5rem; background-size: 100% 100%; }
+          .hero { padding: 3rem 0 3rem; background-size: 100% 100%; }
+          .hero-hook { font-size: 0.8125rem; }
+          .hero-checks { flex-direction: column; align-items: center; }
           .section { padding: 3.5rem 0; }
           .hero-ctas { flex-direction: column; width: 100%; }
           .hero-ctas .btn, .hero-ctas .wa-btn { width: 100%; }
@@ -560,7 +529,13 @@ export default function PagelabLanding({ variant = 'home' }) {
           .footer-bottom { flex-direction: column; text-align: center; }
           .container { padding: 0 1.25rem; }
           .portfolio-card { min-width: 300px; max-width: 300px; }
-          .testimonial { min-width: 300px; max-width: 300px; }
+          .phone { width: 220px; }
+          .phone--sm { width: 150px; border-width: 6px; border-radius: 26px; }
+          .problem-close { padding: 1.5rem 1.25rem; }
+          .lista-step { padding: 1.25rem; grid-template-columns: 44px 1fr; }
+          .lista-letter { width: 44px; height: 44px; font-size: 1.25rem; }
+          .lista-who { position: static; grid-column: 2; justify-self: start; margin-bottom: 0.375rem; }
+          .lista-letter { grid-row: span 3; }
           .final-ctas { flex-direction: column; align-items: stretch; }
           .footer { padding-bottom: calc(1.5rem + 76px + env(safe-area-inset-bottom)); }
 
@@ -586,9 +561,9 @@ export default function PagelabLanding({ variant = 'home' }) {
             <div className="logo">Pagelab.</div>
             <div className="header-actions">
               <nav className="nav">
-                <a onClick={() => scrollToSection('proceso')}>Proceso</a>
+                <a onClick={() => scrollToSection('proceso')}>Cómo funciona</a>
                 <a onClick={() => scrollToSection('pricing')}>Precios</a>
-                <a onClick={() => scrollToSection('faq')}>FAQ</a>
+                <a onClick={() => scrollToSection('faq')}>Preguntas</a>
               </nav>
               <WhatsAppButton origen="header" mensaje={v.waMensaje} compact />
             </div>
@@ -599,217 +574,248 @@ export default function PagelabLanding({ variant = 'home' }) {
       {/* ── 1. Hero ── */}
       <section className="hero" ref={heroRef} style={{ backgroundImage: `url(${heroBg})` }}>
         <div className="container">
-          <div className="hero-content">
-            <div className="hero-rating-badge">
-              <span className="rating-stars">★★★★★</span>
-              <span className="rating-score">{RATING.toFixed(1)} <span>/ 5.0</span></span>
-              <span className="rating-sep" />
-              <span className="rating-clients">{SITIOS_ENTREGADOS}+ sitios entregados</span>
+          <div className="hero-layout">
+            <div className="hero-content">
+              <div className="hero-hook">¿Te piden tu página y mandas el Instagram?</div>
+
+              <h1 className="hero-headline">{h1}</h1>
+
+              <p className="hero-sub">
+                Respondes un brief guiado de 10 minutos (o lo conversamos por teléfono). Escribimos los textos, la diseñamos y te la mostramos en un link. Apenas la apruebas, queda publicada con tu dominio y en Google Maps.
+              </p>
+
+              <ul className="hero-checks">
+                {['Textos escritos por nosotros', 'Dominio .cl a tu nombre, sin mensualidades', 'Google Maps incluido'].map((c) => (
+                  <li key={c}><IconTick />{c}</li>
+                ))}
+              </ul>
+
+              <p className="hero-price">
+                Desde <strong>{formatCLP(PRECIO_LANDING)}</strong> o {textoCuotas(PRECIO_LANDING)}.
+              </p>
+
+              <div className="hero-ctas">
+                <button className="btn btn-primary" onClick={() => goPay(v.plan)}>Reservar mi cupo →</button>
+                <WhatsAppButton origen="hero" mensaje={v.waMensaje} label="Prefiero hablar por WhatsApp" variant="outline" />
+              </div>
+              <div className="cta-note">
+                <IconEscudo size={14} /> Si no te mostramos tu web a tiempo, te devolvemos el 100%.
+              </div>
+              {hayCupos && (
+                <div className="cta-cupos">
+                  {[
+                    landing.proximoInicio && `Próximo inicio: ${landing.proximoInicio}`,
+                    landing.cuposSemana && `Quedan ${landing.cuposSemana} cupos esta semana`,
+                  ].filter(Boolean).join(' · ')}
+                </div>
+              )}
+
+              {landing.pymesConWeb && (
+                <div className="hero-strip">
+                  {testimoniosVerificados.length > 0 && (
+                    <div className="strip-avatars">
+                      {testimoniosVerificados.slice(0, 5).map((t) => (
+                        <div key={t.nombre} className="author-avatar">{t.foto ? <img src={t.foto} alt={t.nombre} /> : iniciales(t.nombre)}</div>
+                      ))}
+                    </div>
+                  )}
+                  <p>{landing.pymesConWeb} pymes ya tienen su web con PageLab</p>
+                </div>
+              )}
             </div>
 
-            <h1 className="hero-headline">{v.h1}</h1>
-
-            <p className="hero-sub">{v.sub}</p>
-
-            <div className="hero-ctas">
-              <WhatsAppButton origen="hero" mensaje={v.waMensaje} />
-              <button className="btn btn-secondary" onClick={() => goPay()}>Pagar y empezar hoy</button>
-            </div>
-            <div className="cta-note">
-              <IconEscudo size={14} /> Tu sitio en {PLANES[v.plan].plazo} o te devolvemos el 100% · Respuesta promedio: {TIEMPO_RESPUESTA_PROMEDIO}
-            </div>
-            <button className="hero-link" onClick={() => scrollToSection('portfolio')}>Ver ejemplos →</button>
+            {/* Antes y después (si está cargado) o celular con un sitio real */}
+            {antesDespues ? (
+              <div className="hero-visual">
+                <div className="ba-item">
+                  <div className="phone phone--sm"><img src={antesDespues.instagram} alt={`Instagram de ${antesDespues.negocio || 'un cliente'}`} /></div>
+                  <span className="ba-label">Antes</span>
+                </div>
+                <div className="ba-item">
+                  <div className="phone phone--sm"><img src={antesDespues.web} alt={`Web de ${antesDespues.negocio || 'un cliente'} hecha por PageLab`} /></div>
+                  <span className="ba-label">Después</span>
+                </div>
+              </div>
+            ) : sitioHero && (
+              <div className="hero-visual">
+                <div className="phone"><img src={sitioHero.imagenMovil || sitioHero.imagen} alt={`Sitio de ${sitioHero.nombre} hecho por PageLab`} /></div>
+              </div>
+            )}
           </div>
         </div>
       </section>
 
-      {/* ── 2. Trust Bar ── */}
-      <div className="trust-bar" ref={trustBarRef}>
-        <div className="container">
-          <div className="trust-grid">
-            <div className="trust-item">
-              <div className="trust-item-icon">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
-              </div>
-              <div className="trust-number">{counters.sites}<span className="trust-number-suffix">+</span></div>
-              <div className="trust-label">sitios entregados</div>
-            </div>
-            <div className="trust-item">
-              <div className="trust-item-icon">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
-              </div>
-              <div className="trust-number">{counters.days.toFixed(1)}<span className="trust-number-suffix"> días</span></div>
-              <div className="trust-label">promedio de entrega</div>
-            </div>
-            <div className="trust-item">
-              <div className="trust-item-icon">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><path d="M22 4L12 14.01l-3-3"/></svg>
-              </div>
-              <div className="trust-number">{counters.rating.toFixed(1)}<span className="trust-number-suffix"> / 5</span></div>
-              <div className="trust-label">rating de clientes</div>
-            </div>
-            <div className="trust-item">
-              <div className="trust-item-icon">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
-              </div>
-              <div className="trust-number">{counters.resp}<span className="trust-number-suffix">{RESP_UNIT}</span></div>
-              <div className="trust-label">respuesta promedio</div>
+      {/* ── Cifras (solo si hay stats reales en config) ── */}
+      {stats.length > 0 && (
+        <div className="trust-bar">
+          <div className="container">
+            <div className="trust-grid" data-cols={Math.min(stats.length, 4)} style={{ '--cols': Math.min(stats.length, 4) }}>
+              {stats.map((s) => (
+                <div key={s.etiqueta} className="trust-item">
+                  <div className="trust-number">{s.valor}</div>
+                  <div className="trust-label">{s.etiqueta}</div>
+                </div>
+              ))}
             </div>
           </div>
         </div>
-      </div>
+      )}
 
-      {/* ── 3. Por qué Pagelab funciona ── */}
+      {/* ── 2. Problema ── */}
+      <section className="section section-alt" data-animate>
+        <div className="container">
+          <div className="section-header">
+            <h2 className="section-headline">¿Te suena?</h2>
+          </div>
+          <ul className="problem-list">
+            {PROBLEMAS.map((p) => (
+              <li key={p} className="problem-item"><span className="problem-mark">✕</span>{p}</li>
+            ))}
+          </ul>
+          <p className="problem-close">No te falta una página. Te falta que alguien la haga por ti, rápido y sin perseguirlo.</p>
+        </div>
+      </section>
+
+      {/* ── 3. La oferta ── */}
       <section className="section" data-animate>
         <div className="container">
           <div className="section-header">
-            <div className="section-eyebrow">Por qué funciona</div>
-            <h2 className="section-headline">Por qué Pagelab funciona</h2>
+            <div className="section-eyebrow">Qué recibes</div>
+            <h2 className="section-headline">Todo lo que necesitas para verte profesional y aparecer en Google. Sin mover un dedo.</h2>
           </div>
-          <div className="why-grid">
-            {[
-              { Icon: IconClipboard, title: 'Proceso claro', text: 'Sabes exactamente qué va a pasar. Completas un formulario simple, nosotros creamos tu sitio, lo apruebas y queda en vivo. Sin pasos confusos, sin sorpresas.' },
-              { Icon: IconClock, title: 'Tiempo real', text: '3 días es un compromiso, no una estimación. Lunes envías el brief, jueves tu sitio está funcionando. Puedes planificar tu lanzamiento con certeza.' },
-              { Icon: IconCheck, title: 'Todo resuelto', text: 'Diseño, código, dominio, hosting. Todo incluido en el precio. No tienes que contratar nada más ni aprender nada técnico. Solo envías tu contenido. El dominio queda a tu nombre y el sitio es tuyo.' },
-            ].map(({ Icon, title, text }, i) => (
-              <div key={i} className="why-card">
-                <div className="icon-block"><Icon /></div>
-                <div className="why-title">{title}</div>
-                <p className="why-text">{text}</p>
+          <div className="offer-grid">
+            {OFERTA.map(({ t, d }) => (
+              <div key={t} className="offer-item">
+                <IconTick />
+                <div>
+                  <div className="offer-title">{t}</div>
+                  <p className="offer-text">{d}</p>
+                </div>
               </div>
             ))}
           </div>
+          {landing.mostrarAncla && (
+            <p className="offer-anchor">Por separado, esto cuesta más de $800.000. En PageLab: <strong>{formatCLP(PRECIO_LANDING)}</strong>.</p>
+          )}
         </div>
       </section>
 
-      {/* ── 4. Cómo funciona ── */}
+      {/* ── 4. Cómo funciona: Método LISTA ── */}
       <section className="section section-alt" id="proceso" data-animate>
         <div className="container">
           <div className="section-header">
-            <div className="section-eyebrow">El proceso</div>
-            <h2 className="section-headline">Cómo funciona</h2>
-            <p className="section-sub">3 pasos. Menos de una semana. Tu página publicada.</p>
+            <div className="section-eyebrow">Cómo funciona</div>
+            <h2 className="section-headline">El Método LISTA</h2>
+            <p className="section-sub">Somos rápidos porque tenemos un método, no porque hagamos menos.</p>
           </div>
-          <div className="process-grid">
-            {[
-              { n: '01', title: 'Envías tu contenido', desc: 'Llenas un brief simple: qué hace tu negocio, qué quieres mostrar, fotos si las tienes. 5 minutos máximo.', time: '⏱ 5 minutos' },
-              { n: '02', title: 'Nosotros creamos tu sitio', desc: 'Diseñamos, programamos y configuramos todo. Te enviamos un preview para que lo revises.', time: `⏱ Landing: ${PLANES.landing.plazo} · Sitio: ${PLANES.sitio.plazo}` },
-              { n: '03', title: 'Tu sitio está en vivo', desc: 'Apruebas el preview, nosotros lo subimos con tu dominio. Quedas con tu sitio funcionando y accesos a todo.', time: '⏱ Publicamos al aprobar' },
-            ].map(({ n, title, desc, time }, i) => (
-              <div key={i} className="process-step">
-                <div className="step-num">{n}</div>
-                <div className="step-title">{title}</div>
-                <p className="step-desc">{desc}</p>
-                <div className="step-time">{time}</div>
+          <div className="lista-legend">
+            <span><span className="plan-badge">Tú</span> lo que haces tú</span>
+            <span><span className="plan-badge soft">Nosotros</span> lo que hacemos nosotros</span>
+          </div>
+          <div className="lista-grid">
+            {LISTA.map(({ l, resto, quien, d }) => (
+              <div key={l} className={`lista-step ${quien}`}>
+                <div className="lista-letter">{l}</div>
+                <span className={`lista-who plan-badge${quien === 'nos' ? ' soft' : ''}`}>{quien === 'tu' ? 'Tú' : 'Nosotros'}</span>
+                <div className="lista-title"><b>{l}</b>{resto}</div>
+                <p className="lista-desc">{d}</p>
               </div>
             ))}
           </div>
+          <p className="lista-note"><strong>Si la apruebas a la primera, tu web puede estar en línea en 72 horas.</strong> Desde ahí, el ritmo lo pones tú.</p>
         </div>
       </section>
 
-      {/* ── 5. ¿Cómo prefieres empezar? ── */}
-      <section className="section" data-animate>
+      {/* ── 5. Garantías ── */}
+      <section className="section section-dark" data-animate>
         <div className="container">
           <div className="section-header">
-            <h2 className="section-headline">¿Cómo prefieres empezar?</h2>
-            <p className="section-sub">Puedes comenzar de 2 formas. Elige la que te haga más sentido:</p>
+            <div className="section-eyebrow">Garantías</div>
+            <h2 className="section-headline">El riesgo es nuestro, no tuyo.</h2>
           </div>
-          <div className="start-grid">
-            <div className="start-card">
-              <div className="start-title">Prefiero conversar primero</div>
-              <p className="start-desc">Escríbenos por WhatsApp, te ayudamos a elegir el plan y resolvemos tus dudas. Respondemos en minutos.</p>
-              <ul className="start-benefits">
-                <li>✓ Te ayudamos a elegir el plan correcto</li>
-                <li>✓ Resolvemos tus dudas antes de pagar</li>
-                <li>✓ Sin compromiso</li>
-              </ul>
-              <WhatsAppButton origen="como_empezar" mensaje={v.waMensaje} />
-              <div className="start-timing">Respuesta promedio: {TIEMPO_RESPUESTA_PROMEDIO}</div>
-            </div>
-            <div className="start-card">
-              <div className="start-title">Ya sé lo que quiero</div>
-              <p className="start-desc">Eliges tu plan, pagas en línea y nos envías tu contenido después del pago. Empezamos el mismo día.</p>
-              <ul className="start-benefits">
-                <li>✓ Empezamos el mismo día</li>
-                <li>✓ Pago seguro con Mercado Pago</li>
-                <li>✓ Proceso 100% online</li>
-              </ul>
-              <button className="btn btn-secondary" onClick={() => goPay()}>Pagar y empezar hoy</button>
-              <div className="start-timing">Inicio inmediato</div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ── 6. Para quién es esto ── */}
-      <section className="section section-gray" data-animate>
-        <div className="container">
-          <div className="section-header">
-            <div className="section-eyebrow">Casos de uso</div>
-            <h2 className="section-headline">¿Para quién es Pagelab?</h2>
-          </div>
-          <div className="cases-grid">
-            {[
-              { Icon: IconRocket, origen: 'caso_validar', plan: 'landing', title: '¿Validando una idea?', desc: `Tu landing page lista en ${PLANES.landing.plazo} por ${formatCLP(PLANES.landing.precio)}. Lanza rápido, valida con usuarios reales, itera después.` },
-              { Icon: IconBuilding, origen: 'caso_negocio', plan: 'sitio', title: '¿Negocio sin web?', desc: `Sitio corporativo completo por ${formatCLP(PLANES.sitio.precio)}. Muestra tus servicios, genera confianza, recibe consultas. Sin depender de Instagram o Facebook.` },
-              { Icon: IconBriefcase, origen: 'caso_portafolio', plan: 'landing', title: '¿Portfolio profesional?', desc: `Tu portafolio online en ${PLANES.landing.plazo} por ${formatCLP(PLANES.landing.precio)}. Destaca tu trabajo, cierra más clientes, deja de mandar PDFs.` },
-            ].map(({ Icon, origen, plan, title, desc }, i) => (
-              <div key={i} className="case-card">
+          <div className="guarantee-grid">
+            {GARANTIAS.map(({ Icon, t, d }) => (
+              <div key={t} className="guarantee-card">
                 <div className="icon-block"><Icon /></div>
-                <div className="case-title">{title}</div>
-                <p className="case-desc">{desc}</p>
-                <div className="case-ctas">
-                  <WhatsAppButton origen={origen} plan={plan} block />
-                  <button className="btn btn-secondary" onClick={() => scrollToSection('pricing')}>Ver precio</button>
-                </div>
+                <div className="guarantee-title">{t}</div>
+                <p className="guarantee-text">{d}</p>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* ── 7. Portfolio ── */}
-      <section className="section section-alt" id="portfolio" data-animate>
-        <div className="container">
-          <div className="section-header">
-            <div className="section-eyebrow">Portafolio</div>
-            <h2 className="section-headline">Trabajos más recientes</h2>
-            <p className="section-sub">Páginas reales que generan resultados reales para negocios como el tuyo</p>
-          </div>
-        </div>
-        <div className="portfolio-wrapper">
-          <div className="portfolio-slider">
-            {[...portfolioItems, ...portfolioItems].map((p, i) => (
-              <div key={i} className="portfolio-card">
-                <div className="portfolio-screenshot">
-                  {p.img
-                    ? <img src={p.img} alt={p.title} style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: p.objPos || 'top' }} />
-                    : <div style={{ width: '100%', height: '100%', background: p.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontWeight: 700, fontSize: '1.375rem', textAlign: 'center', padding: '2rem', whiteSpace: 'pre-line' }}>{p.label}</div>
-                  }
+      {/* ── 6. Prueba: portafolio + testimonios verificados ── */}
+      {(portafolio.length > 0 || testimoniosVerificados.length > 0) && (
+        <section className="section" id="portfolio" data-animate>
+          {portafolio.length > 0 && (
+            <>
+              <div className="container">
+                <div className="section-header">
+                  <div className="section-eyebrow">Portafolio</div>
+                  <h2 className="section-headline">Webs que ya están funcionando</h2>
                 </div>
-                <div className="portfolio-card-content">
-                  <div className="project-category">{p.cat}</div>
-                  <div className="project-info">
-                    <h3>{p.title}</h3>
-                    <p className="project-description">{p.desc}</p>
-                    {p.url && <a className="project-live" href={p.url} target="_blank" rel="noopener noreferrer">Ver sitio en vivo ↗</a>}
+              </div>
+              <div className="portfolio-wrapper">
+                <div className="portfolio-slider">
+                  {[...portafolio, ...portafolio].map((p, i) => (
+                    <div key={i} className="portfolio-card" aria-hidden={i >= portafolio.length}>
+                      <div className="portfolio-screenshot">
+                        {p.imagen
+                          ? <img src={p.imagen} alt={p.nombre} />
+                          : <div className="portfolio-placeholder">{p.nombre}</div>}
+                        {p.etiqueta && <span className="plan-badge soft portfolio-tag">{p.etiqueta}</span>}
+                      </div>
+                      <div className="portfolio-card-content">
+                        <div className="project-category">{p.rubro}</div>
+                        <div className="project-info">
+                          <h3>{p.nombre}</h3>
+                          <p className="project-description">{p.descripcion}</p>
+                          {p.url && <a className="project-live" href={p.url} target="_blank" rel="noopener noreferrer">Ver sitio en vivo ↗</a>}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </>
+          )}
+
+          {testimoniosVerificados.length > 0 && (
+            <div className={`container${portafolio.length > 0 ? ' proof-gap' : ''}`}>
+              <div className="section-header">
+                <h2 className="section-headline">Lo que dicen nuestros clientes</h2>
+              </div>
+              <div className="testimonials-grid">
+                {testimoniosVerificados.map((t) => (
+                  <div key={t.nombre} className="testimonial">
+                    <p className="testimonial-quote">"{t.texto}"</p>
+                    <div className="testimonial-author">
+                      <div className="author-avatar">{t.foto ? <img src={t.foto} alt={t.nombre} /> : iniciales(t.nombre)}</div>
+                      <div className="author-info">
+                        <strong>{t.nombre}</strong>
+                        <span>
+                          {t.url ? <a href={t.url} target="_blank" rel="noopener noreferrer">{t.negocio}</a> : t.negocio}
+                          {t.rubro && ` · ${t.rubro}`}
+                        </span>
+                      </div>
+                    </div>
                   </div>
-                </div>
+                ))}
               </div>
-            ))}
-          </div>
-        </div>
-      </section>
+            </div>
+          )}
+        </section>
+      )}
 
-      {/* ── 8. Pricing ── */}
+      {/* ── 7. Precios ── */}
       <section className="section pricing-section" id="pricing" ref={pricingRef} data-animate>
         <div className="container">
           <div className="section-header">
             <div className="section-eyebrow">Precios</div>
-            <h2 className="section-headline">Precios honestos. Sin sorpresas.</h2>
-            <p className="section-sub">Dos opciones. Sin mensualidades. Sin letra chica.</p>
+            <h2 className="section-headline">Un precio. Sin sorpresas. Sin mensualidades.</h2>
           </div>
-          {/* 10 filas por tarjeta, en el mismo orden (ver .pricing-card) */}
+          {/* 8 filas por tarjeta, en el mismo orden (ver .pricing-card) */}
           <div className="pricing-cards">
             {Object.values(PLANES).map((p) => (
               <div key={p.id} className={`pricing-card${v.featured === p.id ? ' featured' : ''}`}>
@@ -823,59 +829,35 @@ export default function PagelabLanding({ variant = 'home' }) {
                   <span className="cur">$</span>{formatCLP(p.precio).slice(1)}<span className="iva">IVA incluido</span>
                 </div>
                 <div className="plan-cuotas">o {textoCuotas(p.precio)}</div>
-                <div className="plan-period">Sin mensualidades · {p.listo}</div>
-                <div className="plan-guarantee"><IconEscudo size={16} />{p.garantiaTarjeta}</div>
+                <div className="plan-period">{p.listo}.</div>
                 <div>
                   <hr className="plan-divider" />
                   <ul className="features-list">
                     {p.items.map((f) => <li key={f}>{f}</li>)}
                   </ul>
                 </div>
-                <button className="btn btn-primary" onClick={() => goPay(p.id)}>Pagar y empezar hoy</button>
-                <div className="plan-pay-note">Pagas a {RAZON_SOCIAL} · Boleta o factura</div>
+                <button className="btn btn-primary" onClick={() => goPay(p.id)}>Reservar mi cupo</button>
               </div>
             ))}
           </div>
+          <div className="pricing-guarantee"><IconEscudo size={16} />Si no te mostramos tu web terminada en la fecha comprometida, te devolvemos el 100%.</div>
+          <div className="plan-pay-note">Pagas a {RAZON_SOCIAL} · Boleta o factura</div>
           <div className="pricing-help">
-            <p>¿No sabes cuál elegir? Te ayudamos por WhatsApp</p>
-            <WhatsAppButton origen="precios" />
+            <p>¿No sabes cuál? Escríbenos por WhatsApp y te decimos en 5 minutos.</p>
+            <WhatsAppButton origen="precios" label="Escríbenos por WhatsApp" />
           </div>
         </div>
       </section>
 
-      {/* ── 9. Testimonials ── */}
-      <section className="section" data-animate>
+      {/* ── 8. Preguntas frecuentes ── */}
+      <section className="section" id="faq" data-animate>
         <div className="container">
           <div className="section-header">
-            <h2 className="section-headline">Lo que dicen nuestros clientes</h2>
-          </div>
-        </div>
-        <div className="testimonials-wrapper">
-          <div className="testimonials">
-            {[...testimonials, ...testimonials].map((t, i) => (
-              <div key={i} className="testimonial">
-                <p className="testimonial-quote">{t.quote}</p>
-                <div className="testimonial-author">
-                  <div className="author-avatar">{t.foto ? <img src={t.foto} alt={t.name} /> : t.init}</div>
-                  <div className="author-info">
-                    <strong>{t.name}</strong>
-                    <span>{t.url ? <a href={t.url} target="_blank" rel="noopener noreferrer">{t.role}</a> : t.role}</span>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ── 10. FAQ ── */}
-      <section className="section section-alt" id="faq" data-animate>
-        <div className="container">
-          <div className="section-header">
-            <h2 className="section-headline">Las preguntas que todos hacen</h2>
+            <div className="section-eyebrow">Preguntas</div>
+            <h2 className="section-headline">Preguntas frecuentes</h2>
           </div>
           <div className="faq-list">
-            {faqs.map((faq, i) => (
+            {FAQS.map((faq, i) => (
               <div key={i} className="faq-item">
                 <button className="faq-question" onClick={() => toggleFaq(i)}>
                   {faq.q}
@@ -897,29 +879,26 @@ export default function PagelabLanding({ variant = 'home' }) {
         </div>
       </section>
 
-      {/* ── 11. CTA Final ── */}
+      {/* ── 9. Cierre ── */}
       <section className="section section-dark final-cta" data-animate>
         <div className="container">
           <div className="cta-final-layout">
             <div className="cta-final-image">
-              <img src={heroImg} alt="Páginas web profesionales listas en 3 días — Pagelab" />
+              <img src={heroImg} alt="Página web profesional para pymes, terminada en 72 horas — PageLab" />
             </div>
             <div className="cta-final-content">
-              <h2 className="cta-final-headline">Tu web lista antes de que termine la semana</h2>
-              <p className="cta-final-sub">{SITIOS_ENTREGADOS} negocios ya dejaron de depender de Instagram para conseguir clientes. Landing page desde {formatCLP(PLANES.landing.precio)}, sitio web desde {formatCLP(PLANES.sitio.precio)}. Landing en {PLANES.landing.plazo}, sitio web en {PLANES.sitio.plazo}, hosting incluido para siempre.</p>
+              <h2 className="cta-final-headline">El próximo cliente que te pida tu página, mándale un link.</h2>
+              <p className="cta-final-sub">Tu web terminada en 72 horas. Textos escritos por nosotros. Dominio a tu nombre. Si no te la mostramos a tiempo, te devolvemos el 100%.</p>
               <div className="final-ctas">
-                <WhatsAppButton origen="cta_final" mensaje={v.waMensaje} variant="light" />
-                <button className="btn" style={{ background: 'transparent', color: 'var(--white)', border: '2px solid rgba(255,255,255,0.25)' }} onClick={() => goPay()}>
-                  Pagar y empezar hoy
-                </button>
+                <button className="btn btn-light" onClick={() => goPay(v.plan)}>Reservar mi cupo →</button>
+                <WhatsAppButton origen="cta_final" mensaje={v.waMensaje} variant="light" className="wa-on-dark" />
               </div>
-              <p className="cta-fine-print">Respuesta promedio: {TIEMPO_RESPUESTA_PROMEDIO} · Sin compromiso</p>
             </div>
           </div>
         </div>
       </section>
 
-      {/* ── 12. Formulario ── */}
+      {/* ── Formulario de email ── */}
       <section className="section form-section" id="contacto" data-animate>
         <div className="container">
           <div className="form-layout">
@@ -932,21 +911,13 @@ export default function PagelabLanding({ variant = 'home' }) {
                   'Te decimos exactamente qué plan necesitas',
                   'Precio final sin costos ocultos ni letra chica',
                   'Si apruebas, empezamos el mismo día',
-                  'Respuesta garantizada en menos de 2 horas',
                 ].map((item, i) => (
                   <li key={i}>
-                    <span className="form-bullet-icon">
-                      <svg viewBox="0 0 10 10" fill="none">
-                        <path d="M2 5l2 2 4-4" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                      </svg>
-                    </span>
+                    <IconTick />
                     {item}
                   </li>
                 ))}
               </ul>
-              <div className="form-trust">
-                <strong>{SITIOS_ENTREGADOS} negocios</strong> ya confiaron en Pagelab para tener su presencia online. Tiempo promedio de respuesta: <strong>{TIEMPO_RESPUESTA_PROMEDIO}</strong>
-              </div>
             </div>
 
             {/* Formulario derecho */}
@@ -955,7 +926,7 @@ export default function PagelabLanding({ variant = 'home' }) {
                 <div className="form-success">
                   <div className="form-success-icon">✅</div>
                   <h3>¡Solicitud enviada!</h3>
-                  <p>Te respondemos en menos de 2 horas con la recomendación de plan y el link de pago.</p>
+                  <p>Te respondemos con la recomendación de plan y el link de pago.</p>
                 </div>
               ) : (
                 <form className="brief-form" onSubmit={handleFormSubmit}>
@@ -978,8 +949,8 @@ export default function PagelabLanding({ variant = 'home' }) {
                   <div className="form-group">
                     <label>¿Qué necesitas? *</label>
                     <div className="radio-group">
-                      <label><input type="radio" name="plan" value="Landing Page" required /> Landing Page</label>
-                      <label><input type="radio" name="plan" value="Sitio Web" /> Sitio Web</label>
+                      <label><input type="radio" name="plan" value={PLANES.landing.nombre} required /> {PLANES.landing.nombre}</label>
+                      <label><input type="radio" name="plan" value={PLANES.sitio.nombre} /> {PLANES.sitio.nombre}</label>
                       <label><input type="radio" name="plan" value="No estoy seguro" /> No estoy seguro</label>
                     </div>
                   </div>
@@ -988,7 +959,6 @@ export default function PagelabLanding({ variant = 'home' }) {
                     <textarea id="message" name="message" rows="3" placeholder="Cuéntanos brevemente qué necesitas..." />
                   </div>
                   <button type="submit" className="btn btn-primary form-submit">Enviar Solicitud</button>
-                  <p className="form-note">Te respondemos en menos de 2 horas</p>
                 </form>
               )}
             </div>
@@ -1003,7 +973,7 @@ export default function PagelabLanding({ variant = 'home' }) {
             <div className="footer-brand">
               <div className="footer-logo" itemProp="name">Pagelab.</div>
               <p className="footer-desc" itemProp="description">
-                Diseño y desarrollo de páginas web profesionales en Chile. Landing pages, sitios corporativos y portafolios online. Landing en {PLANES.landing.plazo}, sitio web en {PLANES.sitio.plazo}.
+                Diseño y desarrollo de páginas web profesionales en Chile. Landing pages, sitios corporativos y portafolios online. Landing en {PLANES.landing.plazo} · Sitio web en {PLANES.sitio.plazo}.
               </p>
               <div className="footer-contact">
                 <div>Pagelab es un servicio de {RAZON_SOCIAL} · {COMUNA}{RUT_EMPRESA && ` · RUT ${RUT_EMPRESA}`}</div>
@@ -1014,7 +984,7 @@ export default function PagelabLanding({ variant = 'home' }) {
               <ul className="footer-nav">
                 <li><a onClick={() => scrollToSection('pricing')}>Landing Pages</a></li>
                 <li><a onClick={() => scrollToSection('pricing')}>Sitios Web</a></li>
-                <li><a onClick={() => scrollToSection('portfolio')}>Portafolio</a></li>
+                {portafolio.length > 0 && <li><a onClick={() => scrollToSection('portfolio')}>Portafolio</a></li>}
                 <li><a onClick={() => scrollToSection('pricing')}>Precios</a></li>
               </ul>
             </div>
@@ -1030,7 +1000,7 @@ export default function PagelabLanding({ variant = 'home' }) {
             </div>
           </div>
           <div className="footer-bottom">
-            <div className="footer-copy">© 2026 Pagelab · Páginas web profesionales en Chile · Landing en {PLANES.landing.plazo}</div>
+            <div className="footer-copy">© 2026 Pagelab · Páginas web profesionales en Chile · Landing en {PLANES.landing.plazo} · Sitio web en {PLANES.sitio.plazo}</div>
             <div className="footer-legal">
               <span>Diseño web Santiago</span>
               <span>Landing pages Chile</span>

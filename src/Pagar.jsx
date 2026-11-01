@@ -21,7 +21,7 @@ export default function Pagar() {
   const formRef = useRef(null);
   const plan = PLANES[planId];
 
-  usePageMeta(`Pagar ${plan.nombre} | Pagelab`, `Paga tu ${plan.nombre} en línea con Mercado Pago y empezamos hoy.`);
+  usePageMeta(`Reservar ${plan.nombre} | PageLab`, `Reserva tu ${plan.nombre} en línea con Mercado Pago.`);
 
   // Se llega desde la sección de precios: empezar arriba, no a media página
   useEffect(() => { window.scrollTo(0, 0); }, []);
@@ -148,8 +148,8 @@ export default function Pagar() {
 
       <div className="p-body">
         <div>
-          <h1 className="p-title">Pagar y empezar hoy</h1>
-          <p className="p-sub">Completa tus datos y te llevamos al pago seguro. Después del pago nos envías tu contenido.</p>
+          <h1 className="p-title">Reservar mi cupo</h1>
+          <p className="p-sub">Completa tus datos y te llevamos al pago seguro. Después del pago respondes tu brief de 10 minutos.</p>
         </div>
 
         {/* Resumen del plan */}
@@ -240,7 +240,7 @@ export default function Pagar() {
             </label>
             {errors.acepto && <span className="p-error">{errors.acepto}</span>}
 
-            <GarantiaPlazo plan={planId} nota="El plazo corre desde que confirmamos por WhatsApp que recibimos todo tu material." />
+            <GarantiaPlazo plan={planId} nota="El plazo corre desde que completas tu brief. Al terminarlo te confirmamos día y hora." />
 
             <div>
               <button type="submit" className="p-submit" disabled={sending}>

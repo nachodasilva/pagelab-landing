@@ -32,7 +32,7 @@ export default function Brief() {
   const [checkout] = useState(readCheckout);
   const planFromCheckout = PLANES[checkout.plan] ? checkout.plan : null;
 
-  const [plan, setPlan] = useState(planFromCheckout ? PLANES[planFromCheckout].nombre : 'Landing Page');
+  const [plan, setPlan] = useState(planFromCheckout ? PLANES[planFromCheckout].nombre : PLANES.landing.nombre);
   const [tieneDominio, setTieneDominio] = useState(null);
   const [tieneContenido, setTieneContenido] = useState(null);
   const [tieneColores, setTieneColores] = useState(null);
@@ -42,7 +42,7 @@ export default function Brief() {
 
   useEffect(() => {
     const params = new URLSearchParams(location.search);
-    if (!planFromCheckout && params.get('plan') === 'sitio') setPlan('Sitio Web');
+    if (!planFromCheckout && params.get('plan') === 'sitio') setPlan(PLANES.sitio.nombre);
     window.scrollTo(0, 0);
   }, []);
 
@@ -75,7 +75,7 @@ export default function Brief() {
     return Object.keys(errs).length === 0;
   };
 
-  const planKey = plan === 'Sitio Web' ? 'sitio' : 'landing';
+  const planKey = plan === PLANES.sitio.nombre ? 'sitio' : 'landing';
 
   // El formulario se envía con POST normal (FormSubmit no acepta archivos por AJAX)
   // y FormSubmit redirige a /brief-recibido, que dispara brief_submitted.
@@ -191,7 +191,7 @@ export default function Brief() {
       <div className="brief-hero">
         <div className="brief-eyebrow">Brief del proyecto</div>
         <h1 className="brief-title">Cuéntanos sobre tu proyecto</h1>
-        <p className="brief-subtitle">Con esta información empezamos a trabajar de inmediato. Te tomará unos 5 minutos.</p>
+        <p className="brief-subtitle">Con esta información empezamos a trabajar de inmediato. Te tomará unos 10 minutos.</p>
       </div>
 
       <form

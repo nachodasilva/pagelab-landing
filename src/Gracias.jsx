@@ -106,7 +106,7 @@ export default function Gracias() {
           <h1 className="g-headline">¡Pago confirmado!</h1>
         </div>
         <p className="g-sub">
-          Completa tu brief (5 minutos) para que empecemos hoy.
+          Completa tu brief (10 minutos) para que empecemos hoy.
         </p>
 
         {/* Siguiente paso */}
@@ -135,23 +135,23 @@ export default function Gracias() {
             <div className="g-step-num">1</div>
             <div>
               <div className="g-step-title">Completa tu brief</div>
-              <div className="g-step-desc">Nos cuentas sobre tu negocio y subes tu logo y fotos. Toma unos 5 minutos.</div>
+              <div className="g-step-desc">Nos cuentas sobre tu negocio con preguntas simples. Si no tienes textos ni fotos, no importa. Toma unos 10 minutos.</div>
             </div>
           </div>
 
           <div className="g-step">
             <div className="g-step-num">2</div>
             <div>
-              <div className="g-step-title">Comenzamos el mismo día</div>
-              <div className="g-step-desc">Con tu brief listo, iniciamos el diseño y desarrollo de tu sitio de inmediato.</div>
+              <div className="g-step-title">Escribimos y diseñamos tu web</div>
+              <div className="g-step-desc">Con tu brief listo, escribimos los textos y armamos tu web. Te confirmamos por escrito día y hora de entrega.</div>
             </div>
           </div>
 
           <div className="g-step">
             <div className="g-step-num">3</div>
             <div>
-              <div className="g-step-title">Preview y ajustes en {plan.plazo}</div>
-              <div className="g-step-desc">Te enviamos un link de vista previa para que revises y solicites los cambios incluidos. Solo publicamos cuando estés conforme.</div>
+              <div className="g-step-title">Tu web terminada en un link en {plan.plazo}</div>
+              <div className="g-step-desc">La revisas en tu celular y pides los cambios incluidos. Apenas la apruebas, la publicamos.</div>
             </div>
           </div>
         </div>
