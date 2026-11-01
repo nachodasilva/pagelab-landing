@@ -135,7 +135,7 @@ export default function Gracias() {
             <div className="g-step-num">1</div>
             <div>
               <div className="g-step-title">Completa tu brief</div>
-              <div className="g-step-desc">Nos cuentas sobre tu negocio con preguntas simples. Si no tienes textos ni fotos, no importa. Toma unos 10 minutos.</div>
+              <div className="g-step-desc">Nos cuentas sobre tu negocio con preguntas simples. Si no tienes textos ni fotos, no importa. Toma unos 10 minutos. Si prefieres, lo hacemos por WhatsApp o en una llamada de 15 minutos.</div>
             </div>
           </div>
 

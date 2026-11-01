@@ -21,7 +21,7 @@ export default function Pagar() {
   const formRef = useRef(null);
   const plan = PLANES[planId];
 
-  usePageMeta(`Reservar ${plan.nombre} | PageLab`, `Reserva tu ${plan.nombre} en línea con Mercado Pago.`);
+  usePageMeta(`Reservar ${plan.nombre} | Pagelab`, `Reserva tu ${plan.nombre} en línea con Mercado Pago.`);
 
   // Se llega desde la sección de precios: empezar arriba, no a media página
   useEffect(() => { window.scrollTo(0, 0); }, []);

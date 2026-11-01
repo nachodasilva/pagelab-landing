@@ -4,7 +4,7 @@ import heroImg from './assets/hero.jpg';
 import heroBg from './assets/hero-bg.webp';
 import {
   PLANES, FORMSUBMIT_AJAX_URL, CUOTAS_SIN_INTERES, RAZON_SOCIAL, RUT_EMPRESA, COMUNA,
-  DOMINIO_RENOVACION_APROX, PRECIO_LANDING, formatCLP, textoCuotas,
+  DOMINIO_RENOVACION_APROX, PRECIO_CAMBIOS, PRECIO_LANDING, formatCLP, textoCuotas,
 } from './config';
 import { landing } from './content/landing';
 import { VARIANTS } from './variants';
@@ -81,7 +81,7 @@ const OFERTA = [
 
 // quien: 'tu' | 'nos'
 const LISTA = [
-  { l: 'L', resto: 'o cuentas', quien: 'tu', d: 'Respondes un brief guiado de 10 minutos, con preguntas simples y la opción de contestar con notas de voz (o lo hacemos en una llamada de 15). Te confirmamos por escrito la fecha y hora en que verás tu web.' },
+  { l: 'L', resto: 'o cuentas', quien: 'tu', d: 'Respondes un brief guiado de 10 minutos, con preguntas simples. Lo respondes por escrito, por WhatsApp o en una llamada de 15 minutos. Te confirmamos por escrito la fecha y hora en que verás tu web.' },
   { l: 'I', resto: 'nterpretamos', quien: 'nos', d: 'Convertimos tus respuestas en textos que venden.' },
   { l: 'S', resto: 'itio armado', quien: 'nos', d: 'Diseño, imágenes, botón de WhatsApp y formulario funcionando.' },
   { l: 'T', resto: 'ú la revisas', quien: 'tu', d: 'Te llega un link para verla en tu celular y pides los cambios incluidos.' },
@@ -95,13 +95,12 @@ const GARANTIAS = [
 ];
 
 const FAQS = [
-  { q: '¿Cómo sé que no van a desaparecer con mi plata?', a: `PageLab es un servicio de ${RAZON_SOCIAL}${RUT_EMPRESA ? ` (RUT ${RUT_EMPRESA})` : ''}, agencia de marketing digital en ${COMUNA.split(',')[0]}. Pagas por Mercado Pago, emitimos boleta o factura y, si no te mostramos tu web terminada en la fecha comprometida, te devolvemos el 100%.` },
-  { q: 'No tengo textos ni fotos, ¿igual se puede?', a: 'Sí, para eso existe el brief. Respondes preguntas simples en 10 minutos (puedes contestar con notas de voz) y nosotros escribimos todos los textos. Si no tienes fotos, usamos imágenes profesionales acordes a tu rubro.' },
+  { q: '¿Cómo sé que no van a desaparecer con mi plata?', a: `Pagelab es un servicio de ${RAZON_SOCIAL}${RUT_EMPRESA ? ` (RUT ${RUT_EMPRESA})` : ''}, agencia de marketing digital en ${COMUNA.split(',')[0]}. Pagas por Mercado Pago, emitimos boleta o factura y, si no te mostramos tu web terminada en la fecha comprometida, te devolvemos el 100%.` },
+  { q: 'No tengo textos ni fotos, ¿igual se puede?', a: 'Sí, para eso existe el brief. Respondes preguntas simples en 10 minutos (por escrito, por WhatsApp o en una llamada de 15 minutos) y nosotros escribimos todos los textos. Si no tienes fotos, usamos imágenes profesionales acordes a tu rubro.' },
   { q: '¿Desde cuándo corren las 72 horas y cuándo queda publicada?', a: `La landing se entrega terminada en 72 horas corridas (fines de semana incluidos) desde que completas el brief; al terminarlo te confirmamos día y hora. El Sitio Pyme, en ${PLANES.sitio.plazo}. Ese día te mandamos tu web en un link para revisarla, y la publicamos apenas la apruebas.` },
   { q: '¿Y si no me gusta el diseño?', a: 'Tienes cambios incluidos (1 ronda en la landing, 2 en el sitio). Si al verla terminada no te convence, la rediseñamos desde cero una vez; si tampoco te gusta, te devolvemos el 100%. Solo tienes que pedirlo dentro de los 5 días corridos desde que recibes el link.' },
   { q: '¿Hay mensualidades o costos después?', a: `No. El hosting y el certificado SSL no tienen costo mensual. Inscribimos tu dominio .cl a tu nombre y pagamos el primer año; desde el segundo año lo renuevas directo con NIC Chile (aprox. ${formatCLP(DOMINIO_RENOVACION_APROX)} al año). Si ya tienes dominio, lo conectamos sin costo.` },
-  // [CONFIRMAR CON NACHO: qué pasa después de los 30 días] — no se muestra hasta definirlo.
-  { q: '¿Qué pasa si después quiero cambiar algo?', a: 'Durante los 30 días siguientes a la publicación hacemos cambios menores sin costo: textos, fotos o datos de contacto.' },
+  { q: '¿Qué pasa si después quiero cambiar algo?', a: `Durante los 30 días siguientes a la publicación hacemos cambios menores sin costo: textos, fotos o datos de contacto. Después, cada ronda de cambios cuesta ${formatCLP(PRECIO_CAMBIOS)}, o puedes optar por una mantención mensual por el mismo valor.` },
   { q: '¿La web me va a traer clientes?', a: 'La web te hace visible y creíble. Para traer más clientes te dejamos listo Google Maps y la publicidad; si quieres, lanzamos tu primera campaña.' },
   { q: '¿La página queda a mi nombre?', a: 'Sí. El dominio se inscribe a tu nombre y, una vez pagado, el sitio es tuyo. Si algún día quieres llevarlo a otro proveedor, te entregamos los archivos sin costo.' },
   { q: '¿Puedo pagar en cuotas?', a: `Sí. Con tarjeta de crédito, hasta ${CUOTAS_SIN_INTERES} cuotas sin interés. También con débito o saldo de Mercado Pago.` },
@@ -619,7 +618,7 @@ export default function PagelabLanding({ variant = 'home' }) {
                       ))}
                     </div>
                   )}
-                  <p>{landing.pymesConWeb} pymes ya tienen su web con PageLab</p>
+                  <p>{landing.pymesConWeb} pymes ya tienen su web con Pagelab</p>
                 </div>
               )}
             </div>
@@ -632,13 +631,13 @@ export default function PagelabLanding({ variant = 'home' }) {
                   <span className="ba-label">Antes</span>
                 </div>
                 <div className="ba-item">
-                  <div className="phone phone--sm"><img src={antesDespues.web} alt={`Web de ${antesDespues.negocio || 'un cliente'} hecha por PageLab`} /></div>
+                  <div className="phone phone--sm"><img src={antesDespues.web} alt={`Web de ${antesDespues.negocio || 'un cliente'} hecha por Pagelab`} /></div>
                   <span className="ba-label">Después</span>
                 </div>
               </div>
             ) : sitioHero && (
               <div className="hero-visual">
-                <div className="phone"><img src={sitioHero.imagenMovil || sitioHero.imagen} alt={`Sitio de ${sitioHero.nombre} hecho por PageLab`} /></div>
+                <div className="phone"><img src={sitioHero.imagenMovil || sitioHero.imagen} alt={`Sitio de ${sitioHero.nombre} hecho por Pagelab`} /></div>
               </div>
             )}
           </div>
@@ -695,7 +694,7 @@ export default function PagelabLanding({ variant = 'home' }) {
             ))}
           </div>
           {landing.mostrarAncla && (
-            <p className="offer-anchor">Por separado, esto cuesta más de $800.000. En PageLab: <strong>{formatCLP(PRECIO_LANDING)}</strong>.</p>
+            <p className="offer-anchor">Por separado, esto cuesta más de $800.000. En Pagelab: <strong>{formatCLP(PRECIO_LANDING)}</strong>.</p>
           )}
         </div>
       </section>
@@ -884,7 +883,7 @@ export default function PagelabLanding({ variant = 'home' }) {
         <div className="container">
           <div className="cta-final-layout">
             <div className="cta-final-image">
-              <img src={heroImg} alt="Página web profesional para pymes, terminada en 72 horas — PageLab" />
+              <img src={heroImg} alt="Página web profesional para pymes, terminada en 72 horas — Pagelab" />
             </div>
             <div className="cta-final-content">
               <h2 className="cta-final-headline">El próximo cliente que te pida tu página, mándale un link.</h2>

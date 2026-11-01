@@ -40,6 +40,10 @@ export const PRECIO_SITIO = 399990;
 // Renovación del dominio .cl desde el 2º año (la paga el cliente a NIC Chile).
 export const DOMINIO_RENOVACION_APROX = 10000;
 
+// Después de los 30 días de cambios menores: cada ronda de cambios, o la
+// mantención mensual, tiene este valor (IVA incluido).
+export const PRECIO_CAMBIOS = 29990;
+
 // Lo que incluye Web Pyme 72h (Sitio Pyme incluye todo esto + lo suyo).
 const ITEMS_PYME = [
   'Textos escritos por nosotros',

@@ -1,6 +1,6 @@
 # Pagelab Landing Page
 
-Landing page profesional para Pagelab - Páginas web listas en 3 días.
+Landing page profesional para Pagelab - Páginas web terminadas en 72 horas.
 
 ## 🚀 Deploy en GitHub Pages
 

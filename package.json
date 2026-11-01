@@ -1,7 +1,7 @@
 {
   "name": "pagelab-landing",
   "version": "1.0.0",
-  "description": "Landing page de Pagelab - Páginas web profesionales en 3 días",
+  "description": "Landing page de Pagelab - Páginas web profesionales en 72 horas",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
