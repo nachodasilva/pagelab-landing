@@ -6,6 +6,8 @@ import imgKivo from '../assets/Kivo.webp';
 import imgFloresta from '../assets/Floresta la ermita.webp';
 import imgAcerca from '../assets/Acerca Consultores.webp';
 import imgConecta from '../assets/Conecta Franquicias.webp';
+// Imagen del hero: reemplaza este archivo (o cambia la ruta) por la imagen final.
+import imgHero from '../assets/hero-celular.webp'; // recorte optimizado de hero.png
 
 export const landing = {
   // Ej: "lunes 2 de noviembre". Se muestra bajo los botones del hero.
@@ -21,6 +23,11 @@ export const landing = {
 
   // Solo cifras reales: [{ valor: '12', etiqueta: 'pymes con web' }]
   stats: [],
+
+  // Imagen del lado derecho del hero. Tiene prioridad sobre el antes/después
+  // y el celular. null = vuelve al mockup de celular.
+  heroImagen: imgHero,
+  heroImagenAlt: 'Ejemplo de página web profesional hecha por Pagelab, vista en un celular',
 
   // "Antes y después" del hero: Instagram del cliente al lado de su web.
   // Rutas o URLs de imagen. Si falta alguna, se muestra el mockup de celular.

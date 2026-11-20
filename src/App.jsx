@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { motion, useReducedMotion } from 'motion/react';
 import heroImg from './assets/hero.jpg';
 import heroBg from './assets/hero-bg.webp';
 import {
@@ -13,6 +14,7 @@ import { buildWhatsAppLink, trackWhatsApp } from './lib/whatsapp';
 import { usePageMeta } from './lib/meta';
 import WhatsAppButton, { WhatsAppIcon } from './components/WhatsAppButton';
 import { FormExtras, IconEscudo } from './components/FormExtras';
+import MetodoLista from './components/MetodoLista';
 
 const LEAD_PLAN = { [PLANES.landing.nombre]: 'landing', [PLANES.sitio.nombre]: 'sitio' };
 
@@ -79,15 +81,6 @@ const OFERTA = [
   { t: 'Dominio .cl a tu nombre, hosting y SSL sin mensualidades.', d: 'El sitio es tuyo.' },
 ];
 
-// quien: 'tu' | 'nos'
-const LISTA = [
-  { l: 'L', resto: 'o cuentas', quien: 'tu', d: 'Respondes un brief guiado de 10 minutos, con preguntas simples. Lo respondes por escrito, por WhatsApp o en una llamada de 15 minutos. Te confirmamos por escrito la fecha y hora en que verás tu web.' },
-  { l: 'I', resto: 'nterpretamos', quien: 'nos', d: 'Convertimos tus respuestas en textos que venden.' },
-  { l: 'S', resto: 'itio armado', quien: 'nos', d: 'Diseño, imágenes, botón de WhatsApp y formulario funcionando.' },
-  { l: 'T', resto: 'ú la revisas', quien: 'tu', d: 'Te llega un link para verla en tu celular y pides los cambios incluidos.' },
-  { l: 'A', resto: 'l aire', quien: 'nos', d: 'Apenas la apruebas, la publicamos con tu dominio, Google Maps y el kit de lanzamiento.' },
-];
-
 const GARANTIAS = [
   { Icon: IconClock, t: 'Plazo o devolución.', d: 'Si tu web terminada no te llega en la fecha que te dimos, te devolvemos el 100%.' },
   { Icon: IconRedo, t: 'Te encanta o la rehacemos.', d: 'Si al verla terminada no te convence, la rediseñamos desde cero. Si tampoco te gusta, te devolvemos todo.' },
@@ -114,6 +107,7 @@ export default function PagelabLanding({ variant = 'home' }) {
   const [formSubmitted, setFormSubmitted] = useState(false);
   const [pastHero, setPastHero] = useState(false);
   const heroRef = useRef(null);
+  const reduceMotion = useReducedMotion();
   const pricingRef = useRef(null);
 
   const h1 = v.h1 ?? HEADLINES[landing.heroVariante] ?? HEADLINES.A;
@@ -279,6 +273,17 @@ export default function PagelabLanding({ variant = 'home' }) {
         .phone::before { content: ''; position: absolute; top: 8px; left: 50%; transform: translateX(-50%); width: 34%; height: 18px; border-radius: 100px; background: var(--noir); z-index: 1; }
         .phone img { width: 100%; height: 100%; object-fit: cover; object-position: top center; display: block; }
         .phone--sm { width: 190px; border-width: 8px; border-radius: 32px; }
+        .hero-layout--img { grid-template-columns: 1.3fr 0.7fr; gap: 3rem; }
+        .hero-visual--img { position: relative; align-items: center; margin: -2rem 0 -2.5rem; }
+        .hero-visual--img::before {
+          content: ''; position: absolute; left: 50%; top: 52%; width: 120%; aspect-ratio: 1; transform: translate(-50%, -50%);
+          background: radial-gradient(closest-side, rgba(18,18,18,0.10), transparent); z-index: 0; pointer-events: none;
+        }
+        .hero-visual--img img {
+          position: relative; z-index: 1; display: block; width: auto; height: auto;
+          max-height: min(600px, 74vh); max-width: 100%; aspect-ratio: 688 / 1536;
+          filter: drop-shadow(0 30px 40px rgba(0,0,0,0.22)) drop-shadow(0 8px 12px rgba(0,0,0,0.12));
+        }
         .ba-item { display: flex; flex-direction: column; align-items: center; gap: 0.625rem; }
         .ba-label { font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: var(--fog); }
 
@@ -325,24 +330,6 @@ export default function PagelabLanding({ variant = 'home' }) {
         .offer-anchor { text-align: center; margin-top: 2.5rem; font-size: 1.0625rem; color: var(--iron); }
         .offer-anchor strong { color: var(--noir); }
 
-        /* ── Método LISTA ── */
-        .lista-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 1rem; max-width: 1180px; margin: 0 auto; }
-        .lista-step { position: relative; background: var(--white); border: 1px solid #E8E8E8; border-radius: 10px; padding: 1.5rem 1.25rem; }
-        .lista-step.tu { border: 2px solid var(--noir); }
-        .lista-letter {
-          width: 52px; height: 52px; background: var(--noir); border-radius: 8px;
-          display: flex; align-items: center; justify-content: center;
-          font-size: 1.5rem; font-weight: 800; color: var(--white); margin-bottom: 1rem;
-        }
-        .lista-step.nos .lista-letter { background: var(--bg-mid); color: var(--noir); }
-        .lista-who { position: absolute; top: 1.5rem; right: 1.25rem; }
-        .lista-title { font-size: 1rem; font-weight: 700; color: var(--noir); margin-bottom: 0.5rem; }
-        .lista-title b { font-weight: 800; text-decoration: underline; text-underline-offset: 3px; }
-        .lista-desc { font-size: 0.875rem; line-height: 1.6; color: var(--iron); }
-        .lista-legend { display: flex; justify-content: center; gap: 1rem; margin-bottom: 1.75rem; font-size: 0.8125rem; color: var(--iron); }
-        .lista-legend span { display: inline-flex; align-items: center; gap: 0.375rem; }
-        .lista-note { text-align: center; max-width: 620px; margin: 2.25rem auto 0; font-size: 1rem; line-height: 1.7; color: var(--iron); }
-        .lista-note strong { color: var(--noir); }
 
         /* ── Garantías ── */
         .guarantee-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem; max-width: 1000px; margin: 0 auto; }
@@ -491,11 +478,6 @@ export default function PagelabLanding({ variant = 'home' }) {
         .mobile-bar { display: none; }
 
         /* ── Responsive ── */
-        @media (max-width: 1100px) {
-          .lista-grid { grid-template-columns: 1fr; max-width: 560px; }
-          .lista-step { display: grid; grid-template-columns: 52px 1fr; column-gap: 1rem; padding-right: 6.5rem; }
-          .lista-letter { margin-bottom: 0; grid-row: span 2; }
-        }
         @media (max-width: 1024px) {
           .form-layout { grid-template-columns: 1fr; gap: 2.5rem; }
           .footer-inner { grid-template-columns: 1fr 1fr; }
@@ -503,6 +485,9 @@ export default function PagelabLanding({ variant = 'home' }) {
         }
         @media (max-width: 900px) {
           .hero-layout { grid-template-columns: 1fr; gap: 3rem; }
+          .hero-layout--img { gap: 2.5rem; }
+          .hero-visual--img { margin: 0; }
+          .hero-visual--img img { max-height: 520px; }
           .hero-content { text-align: center; }
           .hero-checks, .hero-ctas, .hero-strip { justify-content: center; }
           .trust-grid { grid-template-columns: repeat(2, 1fr); }
@@ -518,6 +503,7 @@ export default function PagelabLanding({ variant = 'home' }) {
           .cta-final-image { display: none; }
         }
         @media (max-width: 768px) {
+          .hero-visual--img img { max-height: 420px; }
           .hero { padding: 3rem 0 3rem; background-size: 100% 100%; }
           .hero-hook { font-size: 0.8125rem; }
           .hero-checks { flex-direction: column; align-items: center; }
@@ -531,10 +517,6 @@ export default function PagelabLanding({ variant = 'home' }) {
           .phone { width: 220px; }
           .phone--sm { width: 150px; border-width: 6px; border-radius: 26px; }
           .problem-close { padding: 1.5rem 1.25rem; }
-          .lista-step { padding: 1.25rem; grid-template-columns: 44px 1fr; }
-          .lista-letter { width: 44px; height: 44px; font-size: 1.25rem; }
-          .lista-who { position: static; grid-column: 2; justify-self: start; margin-bottom: 0.375rem; }
-          .lista-letter { grid-row: span 3; }
           .final-ctas { flex-direction: column; align-items: stretch; }
           .footer { padding-bottom: calc(1.5rem + 76px + env(safe-area-inset-bottom)); }
 
@@ -573,7 +555,7 @@ export default function PagelabLanding({ variant = 'home' }) {
       {/* ── 1. Hero ── */}
       <section className="hero" ref={heroRef} style={{ backgroundImage: `url(${heroBg})` }}>
         <div className="container">
-          <div className="hero-layout">
+          <div className={`hero-layout${landing.heroImagen ? ' hero-layout--img' : ''}`}>
             <div className="hero-content">
               <div className="hero-hook">¿Te piden tu página y mandas el Instagram?</div>
 
@@ -623,8 +605,23 @@ export default function PagelabLanding({ variant = 'home' }) {
               )}
             </div>
 
-            {/* Antes y después (si está cargado) o celular con un sitio real */}
-            {antesDespues ? (
+            {/* Imagen del hero, antes y después (si está cargado) o celular con un sitio real */}
+            {landing.heroImagen ? (
+              <motion.div
+                className="hero-visual hero-visual--img"
+                initial={{ opacity: 0, y: 24, scale: 0.97 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1], delay: 0.15 }}
+              >
+                <motion.img
+                  src={landing.heroImagen}
+                  alt={landing.heroImagenAlt || ''}
+                  fetchpriority="high"
+                  animate={reduceMotion ? undefined : { y: [0, -10, 0] }}
+                  transition={{ duration: 6, repeat: Infinity, ease: 'easeInOut', delay: 1 }}
+                />
+              </motion.div>
+            ) : antesDespues ? (
               <div className="hero-visual">
                 <div className="ba-item">
                   <div className="phone phone--sm"><img src={antesDespues.instagram} alt={`Instagram de ${antesDespues.negocio || 'un cliente'}`} /></div>
@@ -700,28 +697,14 @@ export default function PagelabLanding({ variant = 'home' }) {
       </section>
 
       {/* ── 4. Cómo funciona: Método LISTA ── */}
-      <section className="section section-alt" id="proceso" data-animate>
+      <section className="section section-alt" id="proceso">
         <div className="container">
           <div className="section-header">
             <div className="section-eyebrow">Cómo funciona</div>
             <h2 className="section-headline">El Método LISTA</h2>
             <p className="section-sub">Somos rápidos porque tenemos un método, no porque hagamos menos.</p>
           </div>
-          <div className="lista-legend">
-            <span><span className="plan-badge">Tú</span> lo que haces tú</span>
-            <span><span className="plan-badge soft">Nosotros</span> lo que hacemos nosotros</span>
-          </div>
-          <div className="lista-grid">
-            {LISTA.map(({ l, resto, quien, d }) => (
-              <div key={l} className={`lista-step ${quien}`}>
-                <div className="lista-letter">{l}</div>
-                <span className={`lista-who plan-badge${quien === 'nos' ? ' soft' : ''}`}>{quien === 'tu' ? 'Tú' : 'Nosotros'}</span>
-                <div className="lista-title"><b>{l}</b>{resto}</div>
-                <p className="lista-desc">{d}</p>
-              </div>
-            ))}
-          </div>
-          <p className="lista-note"><strong>Si la apruebas a la primera, tu web puede estar en línea en 72 horas.</strong> Desde ahí, el ritmo lo pones tú.</p>
+          <MetodoLista />
         </div>
       </section>
 
